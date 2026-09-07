@@ -77,6 +77,20 @@ as exactly one of: `consistent`, `contradictory`, `superseded`, `corrected`, `ex
 - R2.4. The system SHALL persist only redacted text and extracted fields. Unredacted
   originals SHALL NOT be persisted (GC-5).
 
+### Data handling and retention policy (scope note §1, §6)
+
+- R2.5. Personal identifiers — **names, roll/registration numbers, and contact details
+  (email/phone)** — SHALL be redacted at ingestion **before** the notice is stored or
+  indexed. Field extraction SHALL run over the redacted text so no identifier reaches a
+  stored field value.
+- R2.6. The system **SHALL NOT retain the unredacted original.** No column, attribute, or
+  side artifact SHALL hold the pre-redaction text once ingestion completes; the
+  redaction-before-storage guarantee is enforced structurally (the `notice` table has a
+  `redacted_text` column and **no** unredacted-original column).
+- R2.7. Raw fetched files SHALL be kept **only for the duration of the project
+  evaluation**, and SHALL NOT be retained beyond it.
+- R2.8. The **benchmark released with the report SHALL contain redacted text only.**
+
 ## 3. Provenance
 
 - R3.1. The system SHALL compute a **SHA-256** hash per ingested notice over its

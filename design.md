@@ -128,6 +128,16 @@ Indexes on `notice.institution_id`, `notice.kind`, `relation_edge.status`,
    (e.g. `\b\d{2}[A-Z]{2}\d{4,}\b`), and a small name-pattern pass ("Mr./Ms./Dr. Name",
    "Name: X"). Produces `redacted_text`. Only redacted text is stored (GC-5, R2.4).
 
+**Retention policy (scope note §1, §6).** Personal identifiers (names, roll/registration
+numbers, contact details such as email/phone) are redacted at ingestion **before** the
+notice is stored or indexed, and field extraction runs over the redacted text so no
+identifier reaches a stored field. The **unredacted original is not retained**: this is
+enforced *structurally*, not just procedurally. The `notice` table stores only
+`redacted_text` and has **no** unredacted-original column (see §3), so `extraction.extract()`
+returns only `redacted_text` + fields and the ingestion service has nowhere to persist the
+original. Raw fetched files are kept **only for the duration of the project evaluation**,
+and the **benchmark released with the report contains redacted text only**.
+
 ## 6. Provenance (module 3) — services/provenance.py + models_iface/anchor.py
 
 - `sha256_notice(redacted_text, issuer, notice_date)` → canonical SHA-256.

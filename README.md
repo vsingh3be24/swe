@@ -153,6 +153,22 @@ instead. **PDF and pasted-text paths work fully** without any OCR engine. To
 enable image OCR, install Tesseract and set `FINALSAY_TESSERACT_CMD` (or leave it
 `auto` if `tesseract` is on `PATH`).
 
+## Data handling and retention
+
+FinalSay redacts personal data before it stores anything:
+
+- **Redaction happens at ingestion, before storage or indexing.** Personal
+  identifiers — names, roll/registration numbers, and contact details (email and
+  phone) — are masked as soon as a notice is extracted, and field extraction runs
+  over the redacted text, so no identifier reaches a stored field.
+- **The unredacted original is not retained.** There is no column or attribute
+  that holds the pre-redaction text; the `notice` table stores only
+  `redacted_text`, so the guarantee is enforced structurally, not just by
+  convention.
+- **Raw fetched files are kept only for the duration of the project
+  evaluation** and are not retained beyond it.
+- **The benchmark released with the report contains redacted text only.**
+
 ## Testing and evaluation
 
 ```bash

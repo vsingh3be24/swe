@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from finalsay.models import Notice
+from finalsay.models import Notice, NoticeField
 from finalsay.services import ingestion
 
 
@@ -165,3 +165,111 @@ def test_issuer_publish_creates_official(client: TestClient, make_user):
         headers=_auth(student),
     )
     assert forbidden.status_code == 403
+
+
+# --- Retention / redaction-before-storage (scope note §1, §6; GC-5, R2.4-R2.8) ---
+
+# Original PII strings that MUST never survive into persisted storage.
+_PII_ORIGINALS = (
+    "jane.smith@northgate.edu",  # email
+    "555 2671",  # phone fragment
+    "21CS0456",  # roll / registration number
+    "Jane Smith",  # honorific name
+    "Robert Brown",  # labelled name
+)
+_REDACTION_MASKS = (
+    "[REDACTED_EMAIL]",
+    "[REDACTED_PHONE]",
+    "[REDACTED_ID]",
+    "[REDACTED_NAME]",
+)
+_PII_TEXT = (
+    "Office of the Registrar\n"
+    "Attention: all first-year students\n"
+    "The mid-term exam is postponed to 22 Sept 2024.\n"
+    "Contact Dr. Jane Smith at jane.smith@northgate.edu or +1 415 555 2671.\n"
+    "Roll number 21CS0456 must re-register.\n"
+    "Name: Robert Brown\n"
+)
+
+
+def test_persisted_submission_holds_only_redacted_text_no_unredacted_original(db_session):
+    """Behavioral proof of the retention policy: after actually persisting a notice
+    ingested from PII-containing text and re-reading it from the DB, the stored
+    redacted_text and every stored NoticeField value must contain the redaction
+    masks and NOT the original PII, and no persisted attribute may hold the
+    unredacted original. This test would FAIL if an unredacted original were ever
+    stored.
+    """
+    created = ingestion.create_submission(db_session, text=_PII_TEXT)
+    db_session.commit()
+    notice_id = created.id
+
+    # Expunge everything so the assertions run against a fresh DB read, not the
+    # in-memory object we just built.
+    db_session.expunge_all()
+
+    notice = db_session.get(Notice, notice_id)
+    assert notice is not None
+
+    # redacted_text is the persisted text and carries masks, not the PII.
+    assert notice.redacted_text
+    for original in _PII_ORIGINALS:
+        assert original not in notice.redacted_text
+    assert any(mask in notice.redacted_text for mask in _REDACTION_MASKS)
+
+    # No persisted column/attribute on the Notice holds the unredacted original.
+    # (Structural guarantee: there is no unredacted-original column.) Scan every
+    # persisted string attribute and the raw DB columns to be certain.
+    persisted_strings = [
+        value for value in vars(notice).values() if isinstance(value, str)
+    ]
+    for value in persisted_strings:
+        for original in _PII_ORIGINALS:
+            assert original not in value, (
+                f"unredacted PII {original!r} leaked into a persisted Notice attribute"
+            )
+    column_names = {c.name for c in Notice.__table__.columns}
+    assert not any(
+        "unredact" in name or name in {"raw_text", "original_text", "original"}
+        for name in column_names
+    ), "Notice table must not have an unredacted-original column"
+
+    # Every stored NoticeField value is redacted too (fields parsed from redacted
+    # text), so no identifier leaks through the structured extraction.
+    fields = db_session.query(NoticeField).filter(NoticeField.notice_id == notice_id).all()
+    assert fields, "expected extracted fields to be persisted"
+    for row in fields:
+        if row.value:
+            for original in _PII_ORIGINALS:
+                assert original not in row.value, (
+                    f"unredacted PII {original!r} leaked into stored field {row.field_name!r}"
+                )
+
+
+def test_persisted_official_holds_only_redacted_text(db_session):
+    """Same retention guarantee via the official upsert path (upsert_official ->
+    _apply_extraction / _store_fields), re-read from the DB."""
+    institution = ingestion.get_or_create_institution(
+        db_session, "northgate", "Northgate University", "https://northgate.edu"
+    )
+    from finalsay.adapters.base import RawNotice
+
+    raw = RawNotice(
+        text=_PII_TEXT,
+        source_url="https://northgate.edu/notices/1",
+        institution_slug="northgate",
+    )
+    notice, created = ingestion.upsert_official(db_session, raw, institution)
+    db_session.commit()
+    assert created
+    notice_id = notice.id
+    db_session.expunge_all()
+
+    reread = db_session.get(Notice, notice_id)
+    assert reread is not None and reread.redacted_text
+    for original in _PII_ORIGINALS:
+        assert original not in reread.redacted_text
+        assert original not in (reread.action or "")
+        assert original not in (reread.issuer or "")
+    assert any(mask in reread.redacted_text for mask in _REDACTION_MASKS)
