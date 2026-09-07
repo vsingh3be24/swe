@@ -20,6 +20,9 @@ dev-dist/
 apps/web/dist/
 apps/web/dev-dist/
 
+# HF model cache (opt-in HF eval only; weights ~1.6GB, never committed)
+.hf-cache/
+
 # OS
 .DS_Store
 

@@ -1,0 +1,17 @@
+# OPT-IN dependencies for the HF ComparisonModel eval only (FINALSAY_COMPARISON_MODEL=hf).
+#
+# These are NOT part of the zero-setup demo. The default demo path uses the
+# offline MockComparisonModel and must stay light, so these packages are kept
+# OUT of requirements.txt on purpose. Install them into the backend venv only
+# when you want to run the real facebook/bart-large-mnli zero-shot path:
+#
+#   cd backend
+#   .venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   .venv/bin/pip install -r requirements-hf.txt
+#
+# torch is intentionally listed without a version so pip resolves the CPU wheel
+# from the index-url above (pin/index chosen at install time, not here). If you
+# install torch separately as shown, `pip install -r requirements-hf.txt` will
+# see it already satisfied. GPU is not required; this eval ran CPU-only.
+transformers>=4.40
+torch

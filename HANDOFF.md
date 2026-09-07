@@ -566,3 +566,102 @@ committed `docs/eval-results.md` artifact.
 - The `.docx` scope note was not present in the workspace (orchestrator could not extract it)
   and no readable copy was found via search; specs were derived from the detailed prompt +
   use-case diagram summary. Logged per instructions.
+
+## Improvement pass P2 + P3 — real HF model executed once + committed results artifact
+
+**Feature:** FEAT-002 (task-finalsay-improvement-pass). P2 (run the real
+`facebook/bart-large-mnli` NLI path once and record the measured numbers) and P3
+(emit the full results table to a committed markdown artifact) are coupled because
+the artifact must carry P2's numbers.
+
+### P3 — markdown results emitter (`backend/finalsay/eval/harness.py`)
+- Added `render_markdown_block(results)`: renders one split+model result set as a
+  self-contained markdown section carrying all **six metrics × five systems**
+  (per-field extraction F1, relationship P/R/F1, false-confirmation rate,
+  unresolved rate, Cohen's kappa, and the FEAT-001 time-to-identify incl.
+  `recall@k`). Numbers are printed exactly as measured.
+- Added `_markdown_document_header()`: the document preamble explaining
+  mock=default/zero-setup vs hf=opt-in `facebook/bart-large-mnli`, the **measured
+  HF runtime**, the honest **MOCK-vs-HF comparison**, and the exact reproduction
+  commands (pip install line + `FINALSAY_COMPARISON_MODEL=hf` env var + harness
+  command).
+- Added `write_report(path, results, reset=)`: append-with-header semantics so
+  successive runs (different split/model) build ONE coherent document; `reset`
+  starts a fresh file (writes the header).
+- New CLI flags on `main()` (stdout output shape is UNCHANGED):
+  - `--report PATH` — also write/append this split+model block to a markdown file.
+  - `--report-reset` — with `--report`, start a fresh document.
+  - `--report-all PATH` — driver that evaluates BOTH splits × BOTH models into one
+    file. MOCK blocks always run (offline); HF blocks run only if the HF stack is
+    importable, else a clearly-labelled "NOT EXECUTED" note is written (no faked
+    numbers). It selects HF via the env var + `get_settings.cache_clear()` and
+    restores the prior env afterwards — it does NOT change the default model path.
+- Committed artifact: **`docs/eval-results.md`** now contains all four labelled
+  blocks (temporal/institution × mock/hf), regenerated AFTER P1 so the
+  time-to-identify numbers are the measured post-P1 values (recall@k included).
+
+### P2 — the real HF model was actually executed once on both splits
+- **Install location (venv only, NOT the demo install):** installed CPU
+  `torch==2.14.0+cpu` (from `https://download.pytorch.org/whl/cpu`) and
+  `transformers==5.16.1` (PyPI) into `backend/.venv`. **`backend/requirements.txt`
+  was NOT modified** — the zero-setup demo stays light. The heavy deps are recorded
+  in a SEPARATE opt-in manifest **`backend/requirements-hf.txt`** (documented as
+  HF-eval-only, with the CPU-torch install line in its header comment).
+- **HF cache location:** `HF_HOME=/projects/sandbox/.hf-cache` (kept under the repo
+  so weights persist across commands; `/tmp` is wiped between tool calls). Added
+  `.hf-cache/` to `.gitignore` (the ~1.6 GB weights are never committed).
+- **The documented switch is the env var, not `--model hf` alone.** `--model hf`
+  by itself calls `get_comparison_model()`, which returns MOCK unless
+  `FINALSAY_COMPARISON_MODEL=hf` is set (verified: a first attempt without the env
+  var silently ran mock in ~2 s with mock numbers). The real run therefore used
+  `FINALSAY_COMPARISON_MODEL=hf .venv/bin/python -m finalsay.eval.harness --split
+  <split> --model hf`. Confirmed `get_comparison_model().name=='hf'` under the env
+  var and that the pipeline actually loaded the 515 weight shards.
+- **Measured runtime (CPU-only, this sandbox):** temporal split **~33 s**
+  wall-clock (weights already fetched to the local cache; a cold first-ever
+  download adds a few minutes, network-dependent); institution split **~28 s**
+  (cache warm).
+- **Measured HF numbers (finalsay relationship, reported exactly as measured):**
+  - temporal split: precision 0.143 / recall 0.143 / **F1 0.143**, false_conf
+    **0.000**, unresolved 0.714.
+  - institution split: precision 0.305 / recall 0.333 / **F1 0.289**, false_conf
+    **0.000**, unresolved 0.714.
+- **Honest MOCK-vs-HF comparison (no cherry-picking):** finalsay relationship F1 —
+  temporal HF **0.143** vs MOCK **0.048**; institution HF **0.289** vs MOCK
+  **0.739**. Swapping in the real NLI model makes FinalSay **WORSE on the
+  institution split** (and it trails the `nli`/`prompted_llm` baselines there),
+  while lifting the temporal split up from a very low base. Both models keep
+  FinalSay's **false-confirmation rate at 0.000** (HF routes far more cases to
+  `unresolved`: 0.714 vs MOCK's 0.286/0.190). Reported as-is per the integrity
+  constraint — nothing was tuned to make either model look better. The
+  model-independent metrics (extraction F1, kappa, the four baselines, and the
+  entire time-to-identify metric) are identical across the mock/hf blocks, as
+  expected, since only the ComparisonModel changed.
+
+### Verification (all green)
+- **Default path clean:** `.venv/bin/python -c "... get_comparison_model().name=='mock';
+  'transformers' not in sys.modules and 'torch' not in sys.modules"` → `default path
+  clean` (the default demo never imports the HF stack).
+- `backend/requirements.txt` unchanged (no torch/transformers added there).
+- `cd backend && .venv/bin/pytest finalsay/tests` → **57 passed** (baseline unchanged).
+- Both eval splits with the default MOCK model exit 0; the HF runs on both splits
+  exit 0.
+- `cd apps/web && npm run build` → green (PWA manifest + sw.js emitted).
+
+### Autonomous decisions (with reasoning)
+- **Kept `--model hf` requiring the `FINALSAY_COMPARISON_MODEL=hf` env var** rather
+  than making `--model hf` self-sufficient. That is the pre-existing documented
+  switch (README env table); changing model selection was out of scope for P2/P3
+  and would risk the default path. The reproduction commands in `docs/eval-results.md`
+  and here spell out the env var explicitly.
+- **`requirements-hf.txt` lists `torch` unpinned** with a header note to install it
+  from the CPU index-url first; pinning a wheel/index inside the requirements file
+  would over-constrain across environments (GPU vs CPU). CPU-only is sufficient for
+  this eval.
+- **HF cache under the repo (`.hf-cache/`, gitignored)** because `/tmp` is wiped
+  between tool calls and re-downloading 1.6 GB per step is wasteful.
+- **`--report-all` writes an honest "NOT EXECUTED" note** when the HF stack is
+  absent instead of fabricating HF numbers, satisfying the no-faked-numbers rule
+  on a clean clone.
+- **No git push / no PR** per the standing instruction. Committed the P2/P3 work
+  locally on `work/finalsay-prototype`; left the tree committable.
