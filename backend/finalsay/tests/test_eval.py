@@ -4,6 +4,7 @@ the CLI entrypoint exits 0 for both splits."""
 from __future__ import annotations
 
 from finalsay.eval import baselines
+from finalsay.eval import harness
 from finalsay.eval.harness import evaluate, main
 
 
@@ -84,11 +85,15 @@ def test_time_to_identify_finalsay_measured_and_reports_recall_both_splits():
 
     - FinalSay reports a retrieval recall@k in [0, 1] and its ``k``.
     - The other chronological-style baselines inherit the chronological cost.
-    - Whatever relationship holds between FinalSay's measured mean scan cost and
-      the chronological baseline is asserted as-measured, not tuned. (With the
-      current fixtures FinalSay measures lower on both splits; if honest
-      measurement ever flipped this, the assertion below records the true
-      relationship rather than being tuned to preserve a favorable number.)
+    - The final check is a DIRECTIONAL REGRESSION GUARD, not a claim that the
+      test merely records whatever happens. It asserts that on the current
+      fixtures FinalSay's measured mean scan cost does not exceed the
+      chronological feed's (i.e. measured retrieval reaches the applicable
+      notice at least as fast). Nothing is tuned to make this hold: the numbers
+      come straight from ``retrieval_rank`` with misses charged the full feed.
+      If honest re-measurement ever FLIPPED the direction (e.g. after a data or
+      algorithm change), this assertion would FAIL and surface that regression
+      to a human for review rather than silently absorbing a worse number.
     """
     for split in ("temporal", "institution"):
         results = evaluate(split, "mock")
@@ -107,15 +112,62 @@ def test_time_to_identify_finalsay_measured_and_reports_recall_both_splits():
                 systems[name]["time_to_identify"]["mean_scan_cost"] == chrono_cost
             )
 
-        # Honest measured relationship (NOT tuned): with the current fixtures
-        # measured retrieval reaches the applicable notice at least as fast as a
-        # chronological feed. This is measured, not idealized to 1.
+        # DIRECTIONAL REGRESSION GUARD (measured, NOT tuned): on the current
+        # fixtures measured retrieval reaches the applicable notice at least as
+        # fast as a chronological feed. If honest re-measurement ever flipped
+        # this, the guard FAILS and surfaces the change for a human to review.
         finalsay_cost = finalsay_tti["mean_scan_cost"]
         saving = finalsay_tti["saving_ratio_vs_chronological"]
         assert finalsay_cost <= chrono_cost, (
             f"{split}: finalsay {finalsay_cost} > chronological {chrono_cost}"
         )
         assert saving >= 1.0
+
+
+def test_report_all_refuses_to_clobber_hf_blocks_when_stack_absent(
+    tmp_path, monkeypatch, capsys
+):
+    """Reproducibility guard: `--report-all` in an HF-less environment must NOT
+    overwrite a document that holds committed real HF blocks. We simulate the
+    HF stack being absent (without uninstalling it) via monkeypatch; the driver
+    must refuse (non-zero exit) and leave the existing file byte-for-byte
+    unchanged so the measured HF numbers are never silently dropped."""
+    report = tmp_path / "eval-results.md"
+    sentinel = (
+        "# committed doc\n\n"
+        "### Split: `temporal` — Model: HF (real numbers)\n\nfinalsay f1 0.143\n"
+    )
+    report.write_text(sentinel, encoding="utf-8")
+
+    monkeypatch.setattr(harness, "_hf_stack_available", lambda: False)
+
+    rc = main(["--report-all", str(report)])
+
+    assert rc != 0, "report-all must refuse (non-zero) when HF stack is absent"
+    assert report.read_text(encoding="utf-8") == sentinel, (
+        "the committed document (incl. real HF blocks) must be left untouched"
+    )
+    err = capsys.readouterr().err
+    assert "REFUSING" in err
+
+
+def test_report_all_allow_missing_hf_writes_note_not_fabricated_numbers(
+    tmp_path, monkeypatch
+):
+    """With the explicit --allow-missing-hf opt-in, an HF-less regen is allowed
+    to replace the HF blocks with a clearly-labelled NOT EXECUTED note. It must
+    still write the real MOCK blocks and must NOT fabricate any HF numbers."""
+    report = tmp_path / "eval-results.md"
+    monkeypatch.setattr(harness, "_hf_stack_available", lambda: False)
+
+    rc = main(["--report-all", str(report), "--allow-missing-hf"])
+
+    assert rc == 0
+    text = report.read_text(encoding="utf-8")
+    # MOCK blocks for both splits are present...
+    assert "Model: MOCK" in text
+    # ...and the HF section is an explicit note, not fabricated numbers.
+    assert "NOT EXECUTED" in text
 
 
 def test_institution_split_finalsay_beats_naive_page_change():

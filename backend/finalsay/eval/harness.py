@@ -56,6 +56,18 @@ Time-to-identify proxy (HONEST caveat - this is a PROXY, not a live-user timing)
     best-case assumption. No wall-clock timing is claimed; it is a rank-position
     proxy only.
 
+    INPUT-FIDELITY CAVEAT (honesty note, not a tuning knob): ``retrieval_rank``
+    replays the retrieval ALGORITHM faithfully (same institution filter, same
+    Jaccard token overlap, same +0.1 audience boost, same top-K), but it scores
+    the raw gold ``text`` on BOTH the submission and official sides. The live
+    pipeline instead scores redacted + field-extracted text: the submission
+    tokens come from ``issuer + action + redacted_text`` and the audience boost
+    from the separately-extracted ``submission.audience`` (see
+    ``services.comparison._submission_text``). So the measured rank mirrors the
+    algorithm over IDEALIZED (un-redacted, un-field-extracted) inputs and should
+    NOT be read as byte-identical to what the live path produces. This is an
+    input-side idealization only; the ranking logic itself is exact.
+
 Splits: ``temporal`` holds out the latest submissions; ``institution`` holds out
 one full institution (Summit). Exits 0 on success regardless of metric values.
 
@@ -234,6 +246,14 @@ def retrieval_rank(submission: dict, officials: dict, top_k: int = TOP_K):
     ``None`` if it is not retrieved (a MISS). ``feed_len`` is the number of
     officials in the submission's institution (the fallback scan cost on a miss).
     Ties are broken by external_id ascending for determinism.
+
+    Input-fidelity caveat (honesty note): this mirrors the retrieval ALGORITHM
+    faithfully but scores the raw gold ``text`` on both sides, whereas the live
+    pipeline scores redacted + field-extracted text (submission tokens from
+    ``issuer + action + redacted_text`` and the audience boost from the
+    separately-extracted ``submission.audience``). The measured rank therefore
+    reflects the algorithm over idealized (un-redacted) inputs and is not
+    byte-identical to the live path. See the module docstring for detail.
     """
     slug = submission.get("institution_slug")
     target_ext = submission["official_external_id"]
@@ -653,6 +673,20 @@ def _markdown_document_header() -> str:
         "so those numbers are identical across the MOCK and HF blocks (as "
         "expected — only the ComparisonModel changed).\n"
         "\n"
+        "## Time-to-identify: retrieval-rank input fidelity (honesty note)\n"
+        "\n"
+        "FinalSay's time-to-identify scan cost replays the retrieval "
+        "**algorithm** faithfully (same institution filter, Jaccard token "
+        "overlap, +0.1 audience boost, top-K), but it does so over the raw gold "
+        "notice `text` on both the submission and official sides. The live "
+        "pipeline instead scores **redacted + field-extracted** text — the "
+        "submission tokens come from `issuer + action + redacted_text` and the "
+        "audience boost from the separately-extracted `submission.audience`. So "
+        "the measured rank (and the recall@k / saving numbers derived from it) "
+        "mirrors the algorithm over **idealized (un-redacted) inputs** and should "
+        "not be read as byte-identical to the live path. This is an input-side "
+        "idealization only; no scoring logic or number was tuned.\n"
+        "\n"
         "**Honest MOCK-vs-HF comparison (finalsay relationship F1 on the "
         "held-out splits):** on the `temporal` split HF scores **0.143** vs MOCK "
         "**0.048**; on the `institution` split HF scores **0.289** vs MOCK "
@@ -757,15 +791,27 @@ def main(argv: list[str] | None = None) -> int:
         help=(
             "Driver: evaluate BOTH splits × BOTH models and write one coherent "
             "markdown document to PATH (overwrites). MOCK blocks are always "
-            "produced; HF blocks are produced only if the HF stack is installed "
-            "(else a clearly-labelled note is written — no faked numbers). Does "
+            "produced; HF blocks are produced only if the HF stack is installed. "
+            "If the HF stack is ABSENT this REFUSES to run (so it cannot clobber "
+            "committed real HF numbers) unless --allow-missing-hf is passed. Does "
             "NOT change the default model path."
+        ),
+    )
+    parser.add_argument(
+        "--allow-missing-hf",
+        action="store_true",
+        help=(
+            "Only meaningful with --report-all: permit regenerating the document "
+            "when the HF stack is NOT installed. Any previously-committed real HF "
+            "blocks in PATH will be REPLACED by a 'NOT EXECUTED' note. Off by "
+            "default so a routine HF-less regen cannot silently drop measured "
+            "HF numbers."
         ),
     )
     args = parser.parse_args(argv)
 
     if args.report_all:
-        return _run_report_all(args.report_all)
+        return _run_report_all(args.report_all, allow_missing_hf=args.allow_missing_hf)
 
     results = evaluate(args.split, args.model)
     print_report(results)
@@ -775,15 +821,58 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _run_report_all(path: str) -> int:
+def _hf_stack_available() -> bool:
+    """Return True iff the opt-in HF stack (transformers + torch) is importable.
+
+    Used by ``--report-all`` to decide, BEFORE touching the committed document,
+    whether it can regenerate the real HF blocks or would only be able to write
+    a "NOT EXECUTED" note in their place.
+    """
+    try:
+        import importlib.util
+
+        return (
+            importlib.util.find_spec("transformers") is not None
+            and importlib.util.find_spec("torch") is not None
+        )
+    except Exception:
+        return False
+
+
+def _run_report_all(path: str, *, allow_missing_hf: bool = False) -> int:
     """Evaluate both splits × both models and write one coherent markdown doc.
 
     MOCK blocks always run (offline). HF blocks run only when the HF stack is
-    importable; otherwise a clearly-labelled note records that HF was not
-    executed in this run (no fabricated numbers). The default model path is not
-    touched — HF is selected explicitly here.
+    importable. The default model path is not touched — HF is selected
+    explicitly here.
+
+    Reproducibility guard (protects committed real HF numbers): because this
+    driver REWRITES ``path`` from scratch, running it in an HF-less environment
+    would otherwise clobber any previously-committed real HF blocks and replace
+    them with a "NOT EXECUTED" note. To prevent that silent data loss, when the
+    HF stack is ABSENT this REFUSES to run (writing nothing) unless the caller
+    explicitly passes ``allow_missing_hf=True`` (``--allow-missing-hf``). It
+    never fabricates HF numbers either way.
     """
     import os
+
+    hf_available = _hf_stack_available()
+
+    # GUARD: do not touch the committed file when HF is absent unless explicitly
+    # forced. This runs BEFORE any write, so a routine HF-less regen cannot drop
+    # the committed real HF blocks.
+    if not hf_available and not allow_missing_hf:
+        print(
+            "[report-all] REFUSING to regenerate "
+            f"{path}: the opt-in HF stack (transformers/torch) is not installed, "
+            "so this run could only overwrite the committed real HF blocks with a "
+            "'NOT EXECUTED' note and silently drop measured numbers. Nothing was "
+            "written. Re-run with the HF stack installed to regenerate all blocks, "
+            "or pass --allow-missing-hf to intentionally replace the HF blocks "
+            "with the note.",
+            file=sys.stderr,
+        )
+        return 2
 
     splits = ["temporal", "institution"]
     # Write header + all MOCK blocks first (guaranteed, offline).
@@ -794,27 +883,17 @@ def _run_report_all(path: str) -> int:
         first = False
         print(f"[report-all] wrote {split}/mock block to {path}")
 
-    # HF blocks: only if the stack is importable; select HF explicitly.
-    hf_available = True
-    try:  # pragma: no cover - import probe
-        import importlib.util
-
-        hf_available = (
-            importlib.util.find_spec("transformers") is not None
-            and importlib.util.find_spec("torch") is not None
-        )
-    except Exception:
-        hf_available = False
-
     if not hf_available:
+        # Only reachable with allow_missing_hf=True: the caller has opted in to
+        # replacing the committed HF blocks with an explicit note (no fabrication).
         with open(path, "a", encoding="utf-8") as handle:
             handle.write(
                 "### HF (facebook/bart-large-mnli) — NOT EXECUTED in this run\n\n"
                 "The opt-in HF stack (`transformers`/`torch`) is not installed in "
                 "this environment, so the HF blocks were not regenerated by "
-                "`--report-all`. No numbers are fabricated. Install the stack "
-                "(see the Reproduce section) and re-run with `--model hf` to add "
-                "the HF blocks.\n\n"
+                "`--report-all` (run with `--allow-missing-hf`). No numbers are "
+                "fabricated. Install the stack (see the Reproduce section) and "
+                "re-run with `--model hf` to add the HF blocks.\n\n"
             )
         print(f"[report-all] HF stack unavailable; wrote a note to {path}")
         return 0

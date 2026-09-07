@@ -936,3 +936,106 @@ temp DB per run).
 ### No git push / no PR
 Committed the P6 work locally on `work/finalsay-prototype`; left the tree
 committable. Awaiting the destination before any push.
+
+## Review follow-up pass (2026-09-07, from `2026-09-07-131930-review.md`, APPROVED — non-blocking polish)
+
+The v1 semantic review returned **APPROVED**; it raised 5 non-blocking issues.
+This pass addresses the three actionable ones (#1/#2/#3) and confirms #4/#5 are
+accepted, honestly-documented sandbox constraints. **No committed metric changed**
+— the only edit to `docs/eval-results.md` is one added clarifying paragraph.
+Integrity constraint held throughout: nothing was inflated, tuned, or
+cherry-picked. Backend suite **61 passed** (was 59; +2 new guard tests); both
+eval splits exit 0; `npm run build` green; the zero-setup MOCK/local/SQLite demo
+is untouched.
+
+### Issue #3 (reproducibility footgun) — FIXED: `--report-all` can no longer clobber committed HF blocks
+- **Problem:** `--report-all` rewrites `docs/eval-results.md` from scratch (the
+  first MOCK block is written with `reset=True`). In an environment WITHOUT the
+  opt-in HF stack, the previously-committed **real** HF blocks were replaced by a
+  "NOT EXECUTED" note — silently dropping measured numbers.
+- **Fix (`backend/finalsay/eval/harness.py`):** the HF stack is now probed
+  **before any write** via a new `_hf_stack_available()` helper. If the stack is
+  absent, `_run_report_all` **REFUSES to run** (writes nothing, returns exit code
+  2, prints a clear message to stderr explaining it would drop the committed HF
+  numbers) UNLESS the caller passes the new explicit `--allow-missing-hf` flag.
+  With that opt-in flag, the HF-less regen is permitted and replaces the HF blocks
+  with the clearly-labelled "NOT EXECUTED" note (still never fabricating numbers).
+  When the HF stack IS present, `--report-all` regenerates all blocks as before.
+- **Chosen approach:** option (b) from the review — a `--force`-style guard —
+  because it is the simplest change that makes the hazard impossible for a routine
+  regen and keeps the driver's "one coherent document" behaviour intact.
+- **Proof the guard works even though the HF stack IS installed here** (P2 left
+  `transformers`/`torch` in `backend/.venv`, so `find_spec` sees them): two new
+  unit tests in `test_eval.py` monkeypatch `_hf_stack_available` to simulate
+  absence WITHOUT uninstalling anything:
+  - `test_report_all_refuses_to_clobber_hf_blocks_when_stack_absent` writes a
+    sentinel file containing a fake "real HF" block, runs `--report-all`, and
+    asserts it returns non-zero AND leaves the file **byte-for-byte unchanged**.
+  - `test_report_all_allow_missing_hf_writes_note_not_fabricated_numbers` asserts
+    the `--allow-missing-hf` opt-in writes real MOCK blocks + a "NOT EXECUTED"
+    note (no fabricated HF numbers).
+- **Committed `docs/eval-results.md` verified preserved:** both MOCK blocks and
+  both real HF blocks (finalsay F1 0.143 temporal / 0.289 institution) are intact;
+  a diff vs. the pre-pass file shows the ONLY change is the added issue-#1 note
+  (below). No HF numbers were regenerated or dropped.
+
+### Issue #1 (honesty wording, no logic change) — DONE: documented the retrieval-mirror input fidelity
+- Added an explicit **input-fidelity caveat** in three places, changing no logic
+  and no number:
+  - the harness module docstring and the `retrieval_rank` docstring
+    (`backend/finalsay/eval/harness.py`),
+  - a new one-paragraph section, "Time-to-identify: retrieval-rank input
+    fidelity (honesty note)", in both the generated header
+    (`_markdown_document_header()`, so future regens keep it) and the committed
+    `docs/eval-results.md`.
+- The note states plainly that `retrieval_rank` replays the retrieval ALGORITHM
+  faithfully but scores the raw gold `text` on both sides, whereas the live
+  pipeline scores redacted + field-extracted text (submission tokens from
+  `issuer + action + redacted_text`, audience boost from the separately-extracted
+  `submission.audience`). So the measured rank mirrors the algorithm over
+  idealized (un-redacted) inputs and is not byte-identical to the live path. This
+  is documentation only; no scoring logic or metric changed.
+
+### Issue #2 (test docstring vs. assertion mismatch) — DONE: docstring now states it is a directional guard
+- **Choice (explained per the review's request):** kept the assertion as-is and
+  fixed the DOCSTRING (the review's preferred option), because the directional
+  check is a genuinely useful regression guard and the "report worse numbers
+  as-is" rule is about not TUNING data/logic — it does not forbid a test that
+  *fails loudly* if an honest number regresses. Loosening the assertion to
+  always-pass would remove a real safety net, so I did not do that.
+- `backend/finalsay/tests/test_eval.py`:
+  `test_time_to_identify_finalsay_measured_and_reports_recall_both_splits` now
+  states plainly in its docstring (and the inline comment) that the final check
+  is a **DIRECTIONAL REGRESSION GUARD**: it asserts FinalSay's measured mean scan
+  cost does not exceed the chronological feed on the current fixtures, and would
+  FAIL (surfacing the change for a human) if honest re-measurement ever flipped
+  it. The claim that it "records the true relationship rather than being tuned"
+  is gone. The assertion (`finalsay_cost <= chrono_cost`, `saving >= 1.0`) is
+  unchanged and still measured, not tuned.
+
+### Issues #4 and #5 — ACCEPTED as documented sandbox constraints (no code change)
+- **#4 (smoke test is in-process only):** the e2e smoke drives the real ASGI app
+  via `TestClient`, not a live wire path, because the sandbox reaps background
+  daemons between tool calls. This is already documented in the P4 notes above
+  and in `docs/postgres-verification.md`. Accepted: transport-layer concerns
+  (real server startup, CORS) remain unproven by this target — noted here so the
+  limitation stays visible.
+- **#5 (Postgres run not independently re-verifiable):** P5 recorded a genuine
+  in-session podman container run, but nothing persists across tool calls to
+  re-check, and "migrations" is `Base.metadata.create_all`, not Alembic. Both are
+  stated plainly in `docs/postgres-verification.md`. Accepted as-is; the caveats
+  must stay visible if Postgres is ever claimed production-ready.
+
+### Verification (all green; no committed metric changed)
+- `cd backend && .venv/bin/pytest finalsay/tests -q` → **61 passed** (59 + 2 new
+  report-all guard tests).
+- `cd backend && .venv/bin/python -m finalsay.eval.harness --split temporal` →
+  exit 0; `--split institution` → exit 0.
+- `cd apps/web && npm run build` → green (PWA manifest + sw.js emitted).
+- `docs/eval-results.md`: both MOCK and both real HF blocks preserved; a diff vs.
+  the pre-pass file shows the ONLY delta is the added issue-#1 honesty paragraph —
+  every metric value is byte-identical.
+
+### No git push / no PR
+Committed this review follow-up locally on `work/finalsay-prototype`; left the
+tree committable. No push, no PR (per the task).

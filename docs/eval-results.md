@@ -17,6 +17,10 @@ The HF blocks below were produced by executing the real `facebook/bart-large-mnl
 
 The HF model only affects the **`finalsay`** system's relationship classification. Per-field extraction F1, Cohen's kappa, the four baselines, and the whole time-to-identify metric are model-independent, so those numbers are identical across the MOCK and HF blocks (as expected — only the ComparisonModel changed).
 
+## Time-to-identify: retrieval-rank input fidelity (honesty note)
+
+FinalSay's time-to-identify scan cost replays the retrieval **algorithm** faithfully (same institution filter, Jaccard token overlap, +0.1 audience boost, top-K), but it does so over the raw gold notice `text` on both the submission and official sides. The live pipeline instead scores **redacted + field-extracted** text — the submission tokens come from `issuer + action + redacted_text` and the audience boost from the separately-extracted `submission.audience`. So the measured rank (and the recall@k / saving numbers derived from it) mirrors the algorithm over **idealized (un-redacted) inputs** and should not be read as byte-identical to the live path. This is an input-side idealization only; no scoring logic or number was tuned.
+
 **Honest MOCK-vs-HF comparison (finalsay relationship F1 on the held-out splits):** on the `temporal` split HF scores **0.143** vs MOCK **0.048**; on the `institution` split HF scores **0.289** vs MOCK **0.739**. So swapping in the real NLI model makes FinalSay **worse** on the institution split (and it also trails the `nli`/`prompted_llm` baselines there), while nudging the temporal split up from a very low base. Both models keep FinalSay's **false-confirmation rate at 0.000** (HF routes far more cases to `unresolved`: 0.714 vs MOCK's 0.286/0.190). These numbers are reported exactly as measured; nothing was tuned to make either model look better.
 
 ## Reproduce
