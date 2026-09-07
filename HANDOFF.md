@@ -1039,3 +1039,39 @@ is untouched.
 ### No git push / no PR
 Committed this review follow-up locally on `work/finalsay-prototype`; left the
 tree committable. No push, no PR (per the task).
+
+## Documentation pass - presentation/report material (docs only, no code)
+
+Added three report/presentation documents under `docs/`. **No code, metric, seed,
+eval, or test was changed or re-run this pass** (the user forbade re-running the
+evaluation). Every number in the new docs is transcribed from the committed
+`docs/eval-results.md` (single source of truth) and `docs/postgres-verification.md`.
+
+- **`docs/RESULTS-SUMMARY.md`** - report-ready 5-minute writeup: the scope
+  statement; one mermaid architecture diagram plus a layer/component/tech table;
+  the eval setup (3 institutions, Summit held out, 308-pair / 616-annotation
+  benchmark, two annotators, kappa 0.625, four baselines); both-splits by
+  both-model relationship tables plus per-field extraction F1 and the
+  time-to-identify proxy tables (all copied verbatim from `docs/eval-results.md`);
+  an honest "what these numbers mean" section (why time-to-identify is ~1.457x
+  temporal / ~1.894x institution once measured, why HF underperforms mock on the
+  institution split 0.289 vs 0.739, and the fine-tuning open question);
+  plainly-stated limitations; future work.
+- **`docs/DEMO-SCRIPT.md`** - ~7-minute live demo: clean-clone `make demo`
+  commands, the four seeded demo users, an ordered narrated screen sequence
+  covering a consistent case, a high-signal superseded case (seeded
+  `*-spotlight-2215` "postponed to 22 Sep" text), a low-vocabulary-overlap date
+  conflict (held-out naturalistic "15 Sep ... 22 Sep instead" phrasing), an
+  ambiguous-to-unresolved case, and the Verify then Simulate tamper flow; each
+  step names a seeded/paste-able notice and carries an "if X breaks, do Y"
+  fallback; the Tesseract image-OCR-unavailable note (HTTP 422; use PDF/pasted
+  text) is stated upfront.
+- **`docs/FAQ-DEFENSE.md`** - the ten hardest questions with honest one-paragraph
+  answers (no weakness spun as a strength): where the ML is, why HF is worse than
+  the mock, the ~1.5x saving, synthetic data, why blockchain, chain-down
+  behaviour, held-out non-contamination, synthetic kappa, PostgreSQL-vs-SQLite,
+  and what to do differently next semester.
+
+### No git push / no PR (docs pass)
+Left the tree committable on `work/finalsay-prototype`; no push, no PR (per the
+user and the orchestrator briefing - the orchestrator commits/publishes later).

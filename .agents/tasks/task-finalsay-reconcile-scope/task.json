@@ -1,0 +1,15 @@
+{
+  "task_id": "task-finalsay-reconcile-scope",
+  "task_description": "Reconcile the already-built FinalSay prototype against the authoritative FinalSay-Scope-Note-v2 (which wins over the original build prompt). Three verified deltas: (1) scale the labelled benchmark from 14 to >=300 double-annotated notice pairs with realistic Cohen's kappa (not 1.0), covering every relationship type incl. unresolved and low-overlap date conflicts, keeping the seed idempotent and the held-out eval honest; (2) add the sixth required metric 'time-to-identify-applicable-notice' as an honest offline proxy, reported per split for finalsay + four baselines; (3) add the explicit stated retention-and-redaction policy to requirements.md/design.md/README.md and verify the code never persists an unredacted original. Keep make test (50+), make eval (both splits exit 0), and apps/web npm run build all green. Update HANDOFF.md with all changes, autonomous decisions, and deviations. Do NOT push or open PRs.",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "Final pass all green. Backend pytest 57 passed (was 50; +7 across the three features). Seed idempotent: two consecutive runs give identical counts incl. benchmark_pairs=308 and benchmark_annotations=616 (>= 300 double-annotated pairs, scope sec 1/7). Both eval splits exit 0: temporal reports Cohen's kappa=0.625 (realistic, 0<k<1), FinalSay relationship F1 ~0.05 with 0.000 false-confirmation rate (held-out honesty preserved; naturalistic temporal-holdout phrasings and seed/fixtures/*.json unchanged), and the new sixth metric time-to-identify shows FinalSay mean scan cost 1.000 vs chronological 19.286 (19.29x faster) on temporal and 1.000 vs 17.857 on institution, for finalsay + all four baselines on BOTH splits. Retention-and-redaction policy stated in requirements.md (R2.5-R2.8), design.md (sec 5 Retention policy note), and README.md (Data handling and retention), and verified by two behavioral tests that persist PII-containing notices, re-read from the DB, and confirm only redacted text/fields are stored and no unredacted-original column exists (would fail if an unredacted original were persisted). Frontend npm run build green (PWA manifest.webmanifest + sw.js + workbox emitted). Test quality reviewed: the added tests exercise real code paths (DB-computed kappa realism, scan-cost <= chronological on both splits, redaction-before-storage persistence) and would fail on revert. docker_build skipped: project intentionally ships no Dockerfile (spec forbids Docker microservices). No push / no PR per user instruction; tree left committable on work/finalsay-prototype. HANDOFF.md updated with all changes, autonomous decisions, and deviations.",
+    "review": {}
+  }
+}
