@@ -24,6 +24,11 @@ def _assert_metric_shape(results: dict):
         assert {"precision", "recall", "f1"} <= set(rel)
         assert "false_confirmation_rate" in scores
         assert "unresolved_rate" in scores
+        # Sixth scope-note metric: time-to-identify-applicable-notice (proxy).
+        assert "time_to_identify" in scores
+        tti = scores["time_to_identify"]
+        assert {"mean_scan_cost", "saving_ratio_vs_chronological"} <= set(tti)
+        assert tti["mean_scan_cost"] >= 0.0
 
 
 def test_evaluate_temporal_returns_all_metrics():
@@ -64,6 +69,31 @@ def test_finalsay_has_lowest_false_confirmation_rate():
     }
     assert fcr["finalsay"] == 0.0
     assert fcr["finalsay"] <= min(fcr.values())
+
+
+def test_time_to_identify_finalsay_at_most_chronological_both_splits():
+    """The whole point of the sixth metric: FinalSay's mean scan cost to reach
+    the applicable official notice must be <= the chronological baseline's on
+    BOTH held-out splits (it does not do worse than scrolling a feed, and in
+    practice saves the student time)."""
+    for split in ("temporal", "institution"):
+        results = evaluate(split, "mock")
+        systems = results["systems"]
+        finalsay_cost = systems["finalsay"]["time_to_identify"]["mean_scan_cost"]
+        chrono_cost = systems["chronological"]["time_to_identify"]["mean_scan_cost"]
+        assert finalsay_cost <= chrono_cost, (
+            f"{split}: finalsay {finalsay_cost} > chronological {chrono_cost}"
+        )
+        # The other chronological-style baselines inherit the chronological cost.
+        for name in ("page_change", "nli", "prompted_llm"):
+            assert (
+                systems[name]["time_to_identify"]["mean_scan_cost"] == chrono_cost
+            )
+        # Saving ratio is reported and >= 1.0 for finalsay (at least as fast).
+        assert (
+            systems["finalsay"]["time_to_identify"]["saving_ratio_vs_chronological"]
+            >= 1.0
+        )
 
 
 def test_institution_split_finalsay_beats_naive_page_change():

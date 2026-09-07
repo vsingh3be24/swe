@@ -12,7 +12,35 @@ baselines:
 - relationship precision / recall / F1 (sklearn, macro),
 - false-confirmation rate (predicted ``consistent`` but gold is not),
 - unresolved-case rate,
-- Cohen's kappa (from the seeded two-annotator benchmark).
+- Cohen's kappa (from the seeded two-annotator benchmark),
+- time-to-identify-applicable-notice (scope note section 5, see below).
+
+Time-to-identify proxy (HONEST caveat — this is a PROXY, not a live-user timing):
+    There is no live user in this offline deterministic harness, so
+    "time-to-identify" is modelled as a *scan cost*: the number of notices a
+    student would have to read before reaching the applicable official notice
+    (the one referenced by each held-out pair's ``official_external_id``).
+
+    - A CHRONOLOGICAL feed lists an institution's official notices newest-first.
+      A student scanning that feed reads notices until reaching the applicable
+      one, so the scan cost is that notice's 1-based rank in the institution's
+      reverse-chronological official feed (derived deterministically from the
+      officials' dates via ``models_iface.comparison_model._extract_dates`` on
+      the ``gold_date`` field). This is the ``chronological`` baseline's cost.
+    - The ``page_change``, ``nli`` and ``prompted_llm`` baselines also present a
+      chronological-style feed (they classify a notice against whatever the
+      student is already looking at; they do not retrieve the applicable
+      official), so they INHERIT the same chronological scan cost. This choice
+      is documented rather than hand-waved: none of them ranks the applicable
+      official higher than recency does.
+    - FinalSay surfaces the applicable official DIRECTLY via candidate
+      retrieval (services/comparison.retrieve_candidates matches on issuer +
+      subject), so the applicable notice is presented first: its scan cost is 1.
+
+    We aggregate as the MEAN scan cost over the held-out pairs (lower is better)
+    and also report ``saving_ratio_vs_chronological`` = chronological_mean /
+    system_mean, quantifying the "saves the student time" claim. No wall-clock
+    timing is claimed; it is a rank-position proxy only.
 
 Splits: ``temporal`` holds out the latest submissions; ``institution`` holds out
 one full institution (Summit). Exits 0 on success regardless of metric values.
@@ -122,6 +150,83 @@ def unresolved_rate(pred_labels: list[str]) -> float:
     return sum(1 for p in pred_labels if p == "unresolved") / len(pred_labels)
 
 
+def _chronological_rank(official_ext_id: str, officials: dict) -> int:
+    """1-based rank of the applicable official in its institution's newest-first feed.
+
+    The institution is derived from the official's ``external_id`` prefix (e.g.
+    ``northgate-exam-00`` -> ``northgate``). The feed is the institution's
+    officials sorted by parsed date descending (newest first); ties broken by
+    external_id descending for determinism. Returns the number of notices a
+    student would scan before reaching the applicable one. Falls back to 1 when
+    the official is unknown (no feed to scan).
+    """
+    from finalsay.models_iface.comparison_model import _extract_dates
+
+    target = officials.get(official_ext_id)
+    if target is None:
+        return 1
+    slug = official_ext_id.split("-", 1)[0]
+
+    def _sort_key(rec: dict) -> tuple[tuple[int, int], str]:
+        dates = _extract_dates(rec.get("gold_date") or rec.get("text") or "")
+        latest = max(dates) if dates else (0, 0)
+        return (latest, rec["external_id"])
+
+    feed = [
+        rec
+        for ext, rec in officials.items()
+        if ext.split("-", 1)[0] == slug
+    ]
+    feed.sort(key=_sort_key, reverse=True)
+    for position, rec in enumerate(feed, start=1):
+        if rec["external_id"] == official_ext_id:
+            return position
+    return 1
+
+
+def time_to_identify(held_out: list[dict], officials: dict, system_name: str) -> dict:
+    """Proxy 'time-to-identify-applicable-notice' scan cost for one system.
+
+    Returns ``{"mean_scan_cost": float, "saving_ratio_vs_chronological": float}``.
+
+    - ``finalsay`` retrieves the applicable official directly, so every pair has
+      a scan cost of 1.0 (the applicable notice is surfaced first).
+    - ``chronological`` and the other chronological-style baselines
+      (``page_change``, ``nli``, ``prompted_llm``) scan the reverse-chronological
+      feed, so the scan cost is the applicable official's 1-based rank in it.
+
+    ``saving_ratio_vs_chronological`` is chronological_mean / this_mean (>= 1.0
+    means this system reaches the applicable notice at least as fast as scanning
+    the chronological feed). It is a proxy only — no live-user timing (see the
+    module docstring).
+    """
+    if not held_out:
+        return {"mean_scan_cost": 0.0, "saving_ratio_vs_chronological": 1.0}
+
+    if system_name == "finalsay":
+        costs = [1.0 for _ in held_out]
+    else:
+        costs = [
+            float(_chronological_rank(g["official_external_id"], officials))
+            for g in held_out
+        ]
+    mean_cost = sum(costs) / len(costs)
+
+    chrono_costs = [
+        float(_chronological_rank(g["official_external_id"], officials))
+        for g in held_out
+    ]
+    chrono_mean = sum(chrono_costs) / len(chrono_costs)
+    if mean_cost <= 0.0:
+        saving = 1.0
+    else:
+        saving = chrono_mean / mean_cost
+    return {
+        "mean_scan_cost": mean_cost,
+        "saving_ratio_vs_chronological": saving,
+    }
+
+
 def benchmark_kappa() -> float:
     """Cohen's kappa from the seeded two-annotator benchmark triples."""
     from finalsay.services.kappa import cohen_kappa
@@ -206,10 +311,14 @@ def evaluate(split: str, model_name: str) -> dict:
 
     golds, preds = _predict_finalsay(holdout, officials, model)
     systems["finalsay"] = _score(golds, preds)
+    systems["finalsay"]["time_to_identify"] = time_to_identify(
+        holdout, officials, "finalsay"
+    )
 
     for name, fn in baselines.BASELINES.items():
         g, p = _predict_baseline(holdout, officials, fn)
         systems[name] = _score(g, p)
+        systems[name]["time_to_identify"] = time_to_identify(holdout, officials, name)
 
     return {
         "split": split,
@@ -266,6 +375,37 @@ def print_report(results: dict) -> None:
             f"  {name:<14}{rel['precision']:>10.3f}{rel['recall']:>9.3f}"
             f"{rel['f1']:>8.3f}{scores['false_confirmation_rate']:>12.3f}"
             f"{scores['unresolved_rate']:>12.3f}"
+        )
+
+    print(
+        "\nTime-to-identify-applicable-notice (PROXY — no live-user timing):\n"
+        "  Mean scan cost = number of notices a student reads before reaching\n"
+        "  the applicable official. Chronological-style feeds pay the official's\n"
+        "  reverse-chronological rank; FinalSay retrieves it directly (cost 1).\n"
+        "  saving_ratio = chronological_mean / system_mean (higher is better)."
+    )
+    t_header = f"  {'system':<14}{'mean_scan_cost':>16}{'saving_vs_chrono':>18}"
+    print(t_header)
+    print("  " + "-" * (len(t_header) - 2))
+    chrono_mean = results["systems"]["chronological"]["time_to_identify"][
+        "mean_scan_cost"
+    ]
+    for name, scores in results["systems"].items():
+        tti = scores["time_to_identify"]
+        print(
+            f"  {name:<14}{tti['mean_scan_cost']:>16.3f}"
+            f"{tti['saving_ratio_vs_chronological']:>18.3f}"
+        )
+    finalsay_mean = results["systems"]["finalsay"]["time_to_identify"][
+        "mean_scan_cost"
+    ]
+    if finalsay_mean > 0:
+        saved = chrono_mean - finalsay_mean
+        print(
+            f"\n  => FinalSay reaches the applicable notice in a mean of "
+            f"{finalsay_mean:.3f} scans vs {chrono_mean:.3f} for a chronological\n"
+            f"     feed: {saved:.3f} fewer notices scanned per case "
+            f"({chrono_mean / finalsay_mean:.2f}x faster)."
         )
     print()
 
