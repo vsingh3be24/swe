@@ -180,6 +180,8 @@ class BenchmarkPairOut(BaseModel):
     submission_id: int
     official_id: int
     gold_label: str | None = None
+    submission_text: str | None = None
+    official_text: str | None = None
 
 
 class BenchmarkAnnotateRequest(BaseModel):

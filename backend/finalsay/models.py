@@ -186,6 +186,13 @@ class BenchmarkPair(Base):
     submission_id: Mapped[int] = mapped_column(ForeignKey("notice.id"), nullable=False)
     official_id: Mapped[int] = mapped_column(ForeignKey("notice.id"), nullable=False)
     gold_label: Mapped[str | None] = mapped_column(String(20))
+    # Diversified per-pair phrasing shown on the benchmark screen. These are
+    # display strings for the labelled benchmark dataset only; they do NOT feed
+    # the eval harness (which reads seed/fixtures gold data) and do NOT affect
+    # kappa (computed from the annotator label columns). Kept nullable so older
+    # rows / minimal seeds still validate.
+    submission_text: Mapped[str | None] = mapped_column(Text)
+    official_text: Mapped[str | None] = mapped_column(Text)
 
     annotations: Mapped[list["BenchmarkAnnotation"]] = relationship(
         back_populates="pair", cascade="all, delete-orphan"

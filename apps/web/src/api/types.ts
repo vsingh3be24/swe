@@ -112,6 +112,8 @@ export interface BenchmarkPairOut {
   submission_id: number
   official_id: number
   gold_label: string | null
+  submission_text: string | null
+  official_text: string | null
 }
 
 export interface KappaResponse {

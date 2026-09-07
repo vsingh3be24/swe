@@ -821,3 +821,118 @@ submissions 66, users 4.
 ### No git push / no PR
 Committed the P5 work locally on `work/finalsay-prototype`; left the tree
 committable. Awaiting the destination before any push.
+
+---
+
+## P6 — Cleanup (Alerts page + benchmark phrasing diversification) — DONE
+
+Two independent parts, both landed with the integrity guardrails intact.
+
+### Part (a) — Alerts page: reduced to a clearly-labelled NON-INTERACTIVE placeholder
+
+**Decision: keep the page but strip the fake feature (chose placeholder over
+full removal).** The Alerts screen (`apps/web/src/pages/student/AlertsPage.tsx`)
+was a localStorage stub: per-issuer subscribe toggles were stored only in the
+browser and never synced or delivered anything — a half-working feature that is
+not in the scope note. Rather than delete the route/nav entirely, it was reduced
+to an honest, non-interactive placeholder so the screen's *intent* stays visible
+without pretending the feature exists.
+
+What changed in `AlertsPage.tsx`:
+- **Removed** the localStorage subscription state (`subs`), the `subsKey()`
+  helper, the `toggle()` handler, the `<input type="checkbox">` switches, and the
+  subscription-filtered "Your feed" table — i.e. every interactive-but-fake
+  control.
+- **Kept** a clearly-labelled read-only note ("**Not implemented in this
+  prototype.**") explaining a real alerts feature needs a subscription/delivery
+  backend that does not exist, plus a read-only **preview** of the 10 most recent
+  official notices (real data from `GET /api/notices`) explicitly labelled "not a
+  real alerts feature".
+- Dropped the now-unused imports (`useMemo`, `useAuth`) so the strict TS build
+  (`noUnusedLocals`) stays green.
+
+The route in `App.tsx` and the nav link in `NavBar.tsx` were left in place (they
+now point at an honest placeholder, not a fake feature), so no dangling
+import/route/link was introduced. No interactive-but-fake control remains.
+
+### Part (b) — Benchmark phrasing diversification (deterministic, isolated)
+
+**Problem:** the 308 benchmark pairs read templated because the benchmark screen
+only ever referenced the ~65 eval submissions and 120 officials by id, whose text
+is generated from a tiny topic pool.
+
+**Approach — per-pair diversified DISPLAY text, index-driven, pure:**
+- Added `benchmark_pair_phrasing(index, gold_label)` in
+  `backend/finalsay/seed/dataset.py`: a **pure, deterministic** function (no RNG,
+  no seeded randomness) that rotates through a wider topic pool
+  (`_BENCHMARK_TOPICS`, 15 subjects), six issuer/institution combos
+  (`_BENCHMARK_ISSUERS`), seven date pairs (`_BENCHMARK_DATE_PAIRS`), and 3
+  submission sentence templates **per gold label** (plus one official template
+  per label). Pools are indexed by co-prime-ish offsets (`index*3+1`, `index*2`,
+  `index % len`) so consecutive pairs read differently.
+- Added two **nullable** columns to `BenchmarkPair` (`submission_text`,
+  `official_text`, `models.py`) that store this display text.
+- `_seed_benchmark` (`seed.py`) now fills those columns from
+  `benchmark_pair_phrasing(i, gold)` when it creates a pair, and backfills them on
+  a pre-existing pair if they differ (so a DB seeded before this change refreshes
+  cleanly). Pair identity (`submission_id`,`official_id`) and gold label are
+  unchanged, so the natural-key idempotency guard still holds.
+- Surfaced the text through the API (`BenchmarkPairOut` in `schemas.py`) and the
+  reviewer UI (`apps/web/src/api/types.ts` + `BenchmarkPage.tsx` now render
+  `submission_text`/`official_text`, falling back to `#id`).
+
+**Why every hard constraint still holds:**
+1. **Deterministic / pure:** `benchmark_pair_phrasing` is a pure function of
+   `(index, gold_label)`; no randomness anywhere. Re-running the seed produces
+   byte-identical text and identical counts.
+2. **Idempotent:** two consecutive seeds gave **identical** counts (see below).
+   The new text is written at pair-creation and only refreshed if it differs, so
+   at steady state the second run changes nothing.
+3. **Kappa realistic & unchanged:** kappa is computed from the annotator **label**
+   columns (`benchmark_kappa()` reads `BENCHMARK_TRIPLES[i][1]`/`[2]`), never from
+   phrasing. It stayed **0.625** (strictly 0 < κ < 1). `annotator_a` is *not* a
+   copy of gold. No metric was tuned.
+4. **Pair count:** unchanged at **308** (≥ 300).
+5. **Held-out splits uncontaminated:** `seed/fixtures/*.json` and the
+   `temporal_bucket==1` `_naturalistic_text` phrasings were **not touched**. The
+   benchmark display text is a separate labelled-dataset artifact that the eval
+   harness never reads (harness loads officials/gold from fixtures). Held-out
+   temporal FinalSay relationship **F1 stayed 0.048** and both splits still exit 0
+   — proving no leakage.
+
+**`test_seed.py`:** unchanged. The count expectations (308 pairs / 616
+annotations) and structure are the same; the new columns are additive and
+nullable, so no existing assertion needed editing (none were edited to mask
+anything).
+
+### Observed counts & metrics (measured, not tuned)
+- Two consecutive `.venv/bin/python -m finalsay.seed.seed` runs → **identical**:
+  institutions **3**, users **4**, official_notices **120**, submissions **65**,
+  notice_fields **925**, benchmark_pairs **308**, benchmark_annotations **616**,
+  merkle_roots **1**, merkle_proofs **185**, anchor_blocks **1**.
+- Cohen's kappa (`benchmark_kappa()` and reviewer API path): **0.625** — unchanged.
+- Held-out **temporal** FinalSay relationship F1: **0.048** — unchanged (no
+  contamination). Both eval splits exit **0**.
+- `docs/eval-results.md`: kappa there is already `0.625`; since kappa did not
+  change, the artifact was **left as-is** (no regeneration needed).
+
+### Verification (all green)
+- `cd apps/web && npm run build` → green (no unused imports/vars, no dangling
+  route/link).
+- Fresh-DB seed run twice → identical counts above (a stale local `finalsay.db`
+  from before the new columns was removed first; it is gitignored, not committed).
+- `cd backend && .venv/bin/pytest finalsay/tests/test_seed.py finalsay/tests/test_eval.py -q` → pass.
+- `cd backend && .venv/bin/pytest finalsay/tests -q` → **59 passed** (no regression).
+- `--split temporal` and `--split institution` → both exit 0; temporal F1 = 0.048.
+- `benchmark_kappa()` → 0.625.
+
+### Note on `finalsay.db`
+Adding columns via `create_all` does **not** ALTER an existing SQLite table, so a
+pre-existing dev `backend/finalsay.db` will lack the new columns and the seed will
+error against it. `finalsay.db` is gitignored (a local dev artifact); delete it to
+re-seed from a fresh schema. The pytest suite is unaffected (conftest uses a fresh
+temp DB per run).
+
+### No git push / no PR
+Committed the P6 work locally on `work/finalsay-prototype`; left the tree
+committable. Awaiting the destination before any push.

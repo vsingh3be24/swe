@@ -111,8 +111,8 @@ export default function BenchmarkPage() {
               {pairs.map((p) => (
                 <tr key={p.id}>
                   <td>#{p.id}</td>
-                  <td>#{p.submission_id}</td>
-                  <td>#{p.official_id}</td>
+                  <td>{p.submission_text ?? `#${p.submission_id}`}</td>
+                  <td>{p.official_text ?? `#${p.official_id}`}</td>
                   <td>{p.gold_label ?? '—'}</td>
                   <td>
                     <select

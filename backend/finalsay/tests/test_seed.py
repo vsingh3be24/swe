@@ -53,6 +53,11 @@ def test_seed_is_idempotent(db_session):
     assert first["official"] == 120
     assert first["submissions"] >= 60
     assert first["users"] == 4
+    # Scope-note sections 1/7: the labelled benchmark is 300+ double-annotated
+    # pairs (two annotator rows per pair -> >= 600 annotations).
+    assert first["benchmark_pairs"] >= 300
+    assert first["benchmark_annotations"] >= 600
+    assert first["benchmark_annotations"] == 2 * first["benchmark_pairs"]
 
 
 def test_every_taxonomy_label_present_in_gold(db_session):
@@ -101,3 +106,52 @@ def test_benchmark_has_two_annotators(db_session):
     }
     assert len(annotators) == 2
     assert annotators == set(seed_module.dataset.BENCHMARK_ANNOTATORS)
+
+
+def test_benchmark_gold_covers_every_label(db_session):
+    """Gold benchmark labels span the full 7-label taxonomy, including the
+    deliberately ambiguous ``unresolved`` bucket (scope note section 7)."""
+    seed(db_session)
+    gold_labels = {
+        p.gold_label for p in db_session.scalars(select(BenchmarkPair)).all()
+    }
+    for label in RELATIONSHIP_LABELS:
+        assert label in gold_labels, f"benchmark missing gold label {label}"
+    assert "unresolved" in gold_labels
+
+
+def test_benchmark_kappa_is_realistic_db(db_session):
+    """The kappa reported by the reviewer API over the two most-active
+    annotators is substantial-but-imperfect: strictly > 0 and strictly < 1.0
+    (genuine, non-trivial annotator disagreement, not perfect agreement)."""
+    from finalsay.api.reviewer import compute_benchmark_kappa
+
+    seed(db_session)
+    result = compute_benchmark_kappa(db_session)
+    assert result.pairs_compared >= 300
+    assert set(result.annotators) == set(seed_module.dataset.BENCHMARK_ANNOTATORS)
+    assert 0.0 < result.kappa < 1.0
+
+
+def test_benchmark_kappa_is_realistic_harness():
+    """The harness kappa (computed directly from the generated triples) is also
+    strictly between 0 and 1, and lands in the intended substantial band."""
+    from finalsay.eval.harness import benchmark_kappa
+
+    kappa = benchmark_kappa()
+    assert 0.0 < kappa < 1.0
+    # Intended substantial-but-imperfect band from the deterministic generator.
+    assert 0.55 <= kappa <= 0.85
+
+
+def test_benchmark_triples_deterministic_and_large():
+    """The generated triple set is >= 300 and generation is pure/deterministic
+    (re-generating yields an identical list)."""
+    from finalsay.seed.dataset import (
+        BENCHMARK_TRIPLES,
+        generate_benchmark_triples,
+    )
+
+    assert len(BENCHMARK_TRIPLES) >= 300
+    assert generate_benchmark_triples() == generate_benchmark_triples()
+    assert list(BENCHMARK_TRIPLES) == generate_benchmark_triples()
