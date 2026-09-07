@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "P2 + P3 (coupled): Execute the real HF NLI model path (facebook/bart-large-mnli) ONCE on both splits and record the real measured numbers next to the mock numbers; and make the harness emit its full results table (six metrics x five systems x both splits) to a committed markdown artifact docs/eval-results.md (as well as stdout). Regenerate docs/eval-results.md AFTER P1 and P2 so it is current. Keep MOCK the default for the zero-setup demo; do NOT change the default path and do NOT add heavy deps to backend/requirements.txt's default demo install.",
+  "status": "pending",
+  "steps": [
+    "P3 first (so P2 can populate it): add a report-artifact emitter to backend/finalsay/eval/harness.py that renders the full results (per-field extraction F1, relationship precision/recall/F1, false-confirmation rate, unresolved rate, Cohen's kappa, and time-to-identify incl. recall@k from FEAT-001) as a markdown table for a given split+model, and can write/append to a committed file (default docs/eval-results.md). Add a CLI flag (e.g. `--emit-markdown PATH` or `--report PATH`) so `python -m finalsay.eval.harness --split temporal --report docs/eval-results.md` writes the artifact in addition to stdout. Make it produce a single coherent document covering both splits when run for both (append or a small driver); keep stdout output unchanged in shape.",
+    "Install the HF stack into backend/.venv WITHOUT adding it to the default demo install path: `backend/.venv/bin/pip install transformers torch --index-url` as appropriate (CPU torch is fine; OPEN_INTERNET available). Do NOT add transformers/torch to backend/requirements.txt (that file is the zero-setup demo install and must stay light). If you want them recorded, add a SEPARATE optional file (e.g. backend/requirements-hf.txt) documented as opt-in for the HF eval only.",
+    "Run the harness ONCE on BOTH splits with the real model: `cd backend && FINALSAY_COMPARISON_MODEL=hf .venv/bin/python -m finalsay.eval.harness --split temporal --model hf` and `--split institution --model hf`. Model weights (facebook/bart-large-mnli, ~1.6GB) download on first run; note the runtime honestly. Capture the REAL measured numbers.",
+    "Create/populate docs/eval-results.md with the full table for BOTH splits and BOTH models (mock and hf), each set of numbers CLEARLY LABELLED which is which (mock = default zero-setup; hf = facebook/bart-large-mnli opt-in). Include: the six metrics x five systems for each split, the runtime of the HF run, and the exact setup commands needed to reproduce the HF run (pip install line + env var + harness command). State plainly that MOCK is the default and HF is opt-in.",
+    "If the HF stack genuinely cannot be installed or run within budget, do NOT fake numbers: record in docs/eval-results.md and HANDOFF.md exactly what was attempted and why it could not complete, and leave the mock numbers + P1 measured numbers as the committed artifact.",
+    "Confirm the default path is unchanged: `cd backend && .venv/bin/python -c \"import sys; from finalsay.models_iface.comparison_model import get_comparison_model; m=get_comparison_model(); assert m.name=='mock'; assert 'transformers' not in sys.modules and 'torch' not in sys.modules\"` (the default must not import the HF stack)."
+  ],
+  "acceptance_criteria": [
+    "The harness can emit its full six-metrics x five-systems x both-splits results to docs/eval-results.md via a CLI flag, in addition to stdout.",
+    "docs/eval-results.md exists, is committed-ready, is CURRENT (regenerated after FEAT-001's measured time-to-identify), and contains both mock and hf numbers clearly labelled, plus HF runtime and reproduction/setup commands.",
+    "The HF model path was actually executed once on both splits and the real numbers recorded (or, if impossible within budget, that is stated plainly with what was attempted; no faked numbers).",
+    "MOCK remains the default: backend/requirements.txt is unchanged (no transformers/torch added there); the default get_comparison_model() returns mock and does not import transformers/torch.",
+    "make test and both eval splits (mock) stay green."
+  ],
+  "verification": [
+    "cd backend && .venv/bin/python -m finalsay.eval.harness --split temporal --report docs/eval-results.md; echo exit=$?",
+    "cd backend && .venv/bin/python -m finalsay.eval.harness --split institution --report docs/eval-results.md; echo exit=$?",
+    "cd backend && .venv/bin/python -c \"import sys; from finalsay.models_iface.comparison_model import get_comparison_model; m=get_comparison_model(); assert m.name=='mock'; assert 'transformers' not in sys.modules and 'torch' not in sys.modules; print('default path clean')\"",
+    "cd backend && .venv/bin/pytest finalsay/tests -q"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

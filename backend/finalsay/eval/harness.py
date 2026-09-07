@@ -33,21 +33,28 @@ Time-to-identify proxy (HONEST caveat - this is a PROXY, not a live-user timing)
       official), so they INHERIT the same chronological scan cost. This choice
       is documented rather than hand-waved: none of them ranks the applicable
       official higher than recency does.
-    - FinalSay is assigned a scan cost of 1 under an explicit IDEALIZATION:
-      that its candidate retrieval surfaces the applicable official at rank 1.
-      This is an assumption of PERFECT retrieval, NOT a measured value. This
-      offline harness does not measure retrieval recall or rank -- it never
-      calls ``services.comparison.retrieve_candidates`` for this metric and
-      takes the applicable official directly from each pair's gold pairing. Real
-      retrieval can rank the applicable official below 1 or miss it, so the
-      reported FinalSay cost (and the saving ratio) are best-case figures under
-      the perfect-retrieval assumption, not an empirical retrieval result.
+    - FinalSay's scan cost is MEASURED, not assumed. For each held-out pair we
+      replay the real retrieval step: ``retrieval_rank()`` mirrors
+      ``services.comparison.retrieve_candidates`` (same-institution filter, same
+      Jaccard token overlap over ``[a-z0-9]+`` tokens of length > 2, same +0.1
+      audience boost, same top-K=5) against the fixture officials and returns
+      the 1-based rank of the pair's ``official_external_id`` in the ranked
+      candidate list. That rank IS FinalSay's scan cost for the pair. Retrieval
+      MISSES are counted honestly: when the applicable official is not in the
+      top-K candidate list, retrieval never surfaced it, so the student falls
+      back to scanning the whole institution feed -- the miss scan cost is the
+      number of officials in that institution (the reverse-chronological feed
+      length). A miss therefore makes FinalSay's number WORSE, never free, and
+      is never silently dropped. We also report ``retrieval_recall_at_k`` =
+      fraction of held-out pairs whose applicable official appears in the top-K,
+      so the reader can see how often retrieval actually finds the right notice.
 
     We aggregate as the MEAN scan cost over the held-out pairs (lower is better)
     and also report ``saving_ratio_vs_chronological`` = chronological_mean /
-    system_mean, quantifying the "saves the student time" claim under the same
-    idealization. No wall-clock timing is claimed; it is a rank-position proxy
-    only, and FinalSay's value assumes ideal retrieval (recall/rank unmeasured).
+    system_mean, quantifying the "saves the student time" claim. FinalSay's
+    figure is now an empirical retrieval result (recall/rank measured), not a
+    best-case assumption. No wall-clock timing is claimed; it is a rank-position
+    proxy only.
 
 Splits: ``temporal`` holds out the latest submissions; ``institution`` holds out
 one full institution (Summit). Exits 0 on success regardless of metric values.
@@ -72,6 +79,7 @@ from finalsay.models_iface.comparison_model import (
 )
 from finalsay.seed import dataset
 from finalsay.seed.seed import load_gold_submissions
+from finalsay.services.comparison import TOP_K
 
 
 # --- Metric helpers -----------------------------------------------------------
@@ -191,15 +199,87 @@ def _chronological_rank(official_ext_id: str, officials: dict) -> int:
     return 1
 
 
+def _retrieval_tokens(text: str | None) -> set[str]:
+    """Token rule identical to ``services.comparison._tokens``."""
+    import re
+
+    if not text:
+        return set()
+    return {t for t in re.findall(r"[a-z0-9]+", text.lower()) if len(t) > 2}
+
+
+def _retrieval_overlap(a: set[str], b: set[str]) -> float:
+    """Jaccard overlap identical to ``services.comparison._overlap``."""
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def _institution_of(record: dict, ext_id: str) -> str:
+    """Institution slug for an official record (record slug or ext-id prefix)."""
+    return record.get("institution_slug") or ext_id.split("-", 1)[0]
+
+
+def retrieval_rank(submission: dict, officials: dict, top_k: int = TOP_K):
+    """Replay real candidate retrieval and return the applicable official's rank.
+
+    Mirrors ``services.comparison.retrieve_candidates`` DB-free against the
+    fixture officials dict: filter to the submission's institution, score each
+    official by Jaccard token overlap between the submission's tokens and the
+    official's tokens (same ``[a-z0-9]+`` length>2 rule), add a +0.1 boost when
+    audience tokens intersect, sort descending, take the top ``top_k``.
+
+    Returns ``(rank, feed_len)`` where ``rank`` is the 1-based position of
+    ``submission["official_external_id"]`` within the top-K candidate list, or
+    ``None`` if it is not retrieved (a MISS). ``feed_len`` is the number of
+    officials in the submission's institution (the fallback scan cost on a miss).
+    Ties are broken by external_id ascending for determinism.
+    """
+    slug = submission.get("institution_slug")
+    target_ext = submission["official_external_id"]
+    if slug is None:
+        target = officials.get(target_ext)
+        slug = _institution_of(target or {}, target_ext)
+
+    sub_tokens = _retrieval_tokens(submission.get("text"))
+    # The submission fixture carries only free text, so its audience tokens are
+    # taken from that same text (a superset of any audience mention it makes).
+    aud_tokens = sub_tokens
+
+    scored: list[tuple[float, str]] = []
+    for ext_id, rec in officials.items():
+        if _institution_of(rec, ext_id) != slug:
+            continue
+        score = _retrieval_overlap(
+            sub_tokens, _retrieval_tokens(rec.get("text"))
+        )
+        if aud_tokens and _retrieval_tokens(rec.get("gold_audience")) & aud_tokens:
+            score += 0.1  # small boost for matching audience
+        scored.append((score, ext_id))
+
+    feed_len = len(scored)
+    # Sort by score descending; break ties by external_id ascending.
+    scored.sort(key=lambda s: (-s[0], s[1]))
+    top = scored[:top_k]
+    for position, (_, ext_id) in enumerate(top, start=1):
+        if ext_id == target_ext:
+            return position, feed_len
+    return None, feed_len
+
+
 def time_to_identify(held_out: list[dict], officials: dict, system_name: str) -> dict:
     """Proxy 'time-to-identify-applicable-notice' scan cost for one system.
 
-    Returns ``{"mean_scan_cost": float, "saving_ratio_vs_chronological": float}``.
+    Returns ``{"mean_scan_cost", "saving_ratio_vs_chronological", ...}``.
 
-    - ``finalsay`` is assigned a scan cost of 1.0 per pair as an IDEALIZATION
-      assuming perfect retrieval (the applicable official surfaced at rank 1).
-      Retrieval recall/rank is NOT measured in this offline harness, so this is
-      a best-case assumption, not an empirical value.
+    - ``finalsay`` scan cost per pair is MEASURED via ``retrieval_rank``: the
+      1-based rank of the applicable official in the real top-K candidate list.
+      A retrieval MISS (applicable official not in the top-K) is counted
+      honestly as the institution feed length (retrieval never surfaced it, so
+      the student scans the whole feed) -- misses make the number worse, never
+      free, and are never silently dropped. FinalSay's dict additionally carries
+      ``retrieval_recall_at_k`` (fraction of pairs whose official was in the
+      top-K) and ``k``.
     - ``chronological`` and the other chronological-style baselines
       (``page_change``, ``nli``, ``prompted_llm``) scan the reverse-chronological
       feed, so the scan cost is the applicable official's 1-based rank in it.
@@ -210,13 +290,26 @@ def time_to_identify(held_out: list[dict], officials: dict, system_name: str) ->
     module docstring).
     """
     if not held_out:
-        return {"mean_scan_cost": 0.0, "saving_ratio_vs_chronological": 1.0}
+        result = {"mean_scan_cost": 0.0, "saving_ratio_vs_chronological": 1.0}
+        if system_name == "finalsay":
+            result["retrieval_recall_at_k"] = 0.0
+            result["k"] = TOP_K
+        return result
 
+    recall_at_k = None
     if system_name == "finalsay":
-        # IDEALIZATION: assumes perfect retrieval (applicable official at rank
-        # 1). Retrieval recall/rank is not measured in this offline harness, so
-        # 1.0 is a best-case assumption, not a measured value.
-        costs = [1.0 for _ in held_out]
+        # MEASURED: replay real retrieval, use the applicable official's rank as
+        # the scan cost. Misses fall back to scanning the whole institution feed.
+        costs = []
+        hits = 0
+        for g in held_out:
+            rank, feed_len = retrieval_rank(g, officials)
+            if rank is None:
+                costs.append(float(feed_len))  # miss: scan the whole feed
+            else:
+                costs.append(float(rank))
+                hits += 1
+        recall_at_k = hits / len(held_out)
     else:
         costs = [
             float(_chronological_rank(g["official_external_id"], officials))
@@ -233,10 +326,14 @@ def time_to_identify(held_out: list[dict], officials: dict, system_name: str) ->
         saving = 1.0
     else:
         saving = chrono_mean / mean_cost
-    return {
+    result = {
         "mean_scan_cost": mean_cost,
         "saving_ratio_vs_chronological": saving,
     }
+    if system_name == "finalsay":
+        result["retrieval_recall_at_k"] = recall_at_k
+        result["k"] = TOP_K
+    return result
 
 
 def benchmark_kappa() -> float:
@@ -389,15 +486,21 @@ def print_report(results: dict) -> None:
             f"{scores['unresolved_rate']:>12.3f}"
         )
 
+    finalsay_tti = results["systems"]["finalsay"]["time_to_identify"]
+    recall = finalsay_tti.get("retrieval_recall_at_k")
+    k = finalsay_tti.get("k", 5)
     print(
         "\nTime-to-identify-applicable-notice (PROXY - no live-user timing):\n"
         "  Mean scan cost = number of notices a student reads before reaching\n"
         "  the applicable official. Chronological-style feeds pay the official's\n"
-        "  reverse-chronological rank. FinalSay's cost of 1 is an IDEALIZATION\n"
-        "  assuming perfect retrieval (applicable official at rank 1); retrieval\n"
-        "  recall/rank is NOT measured here, so FinalSay's figure and the saving\n"
-        "  ratio are best-case under that assumption, not an empirical result.\n"
-        "  saving_ratio = chronological_mean / system_mean (higher is better)."
+        "  reverse-chronological rank. FinalSay's cost is MEASURED by replaying\n"
+        "  real candidate retrieval: it is the applicable official's 1-based rank\n"
+        "  in the top-K candidate list. A retrieval MISS (official not in the\n"
+        "  top-K) is counted honestly as scanning the whole institution feed, so\n"
+        "  misses make FinalSay's figure worse rather than free. Retrieval\n"
+        f"  recall@{k} = {recall:.3f} (fraction of held-out pairs whose applicable\n"
+        "  official was actually in the top-K). saving_ratio = chronological_mean\n"
+        "  / system_mean (higher is better)."
     )
     t_header = f"  {'system':<14}{'mean_scan_cost':>16}{'saving_vs_chrono':>18}"
     print(t_header)
@@ -411,6 +514,7 @@ def print_report(results: dict) -> None:
             f"  {name:<14}{tti['mean_scan_cost']:>16.3f}"
             f"{tti['saving_ratio_vs_chronological']:>18.3f}"
         )
+    print(f"\n  FinalSay retrieval recall@{k}: {recall:.3f}")
     finalsay_mean = results["systems"]["finalsay"]["time_to_identify"][
         "mean_scan_cost"
     ]

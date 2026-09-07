@@ -479,6 +479,63 @@ Verification after refinements: backend **57 pass**; both eval splits **exit 0**
 seed idempotency, metric values, and redaction behavior untouched (no frontend
 change). Left committable on `work/finalsay-prototype`; no push, no PR.
 
+## Improvement pass P1 — time-to-identify is now MEASURED (not assumed)
+
+**Feature:** FEAT-001 (task-finalsay-improvement-pass). Highest-priority credibility fix.
+
+**Problem:** The eval harness (`backend/finalsay/eval/harness.py`) hardcoded FinalSay's
+time-to-identify scan cost to `1.0` as an explicit IDEALIZATION "assuming perfect retrieval".
+The headline ~19x saving-vs-chronological was therefore an assumed best case, not a measured
+result.
+
+**What changed (`backend/finalsay/eval/harness.py`):**
+- Added `retrieval_rank(submission, officials, top_k=TOP_K)` which replays the REAL retrieval
+  step DB-free. It mirrors `services/comparison.py:retrieve_candidates` exactly: same-institution
+  filter, Jaccard token overlap over `[a-z0-9]+` tokens of length > 2, +0.1 audience boost,
+  sort descending, top-K = 5 (`TOP_K` imported from `services.comparison`). Ties broken by
+  external_id ascending for determinism. Returns the applicable official's 1-based rank in the
+  top-K list (or `None` = a miss) plus the institution feed length.
+- Replaced the `finalsay` branch in `time_to_identify()`: FinalSay's per-pair scan cost is now
+  the MEASURED retrieval rank instead of `1.0`.
+- **Miss-cost convention (documented decision):** when the applicable official is NOT in the
+  top-K candidate list, retrieval never surfaced it, so the student falls back to scanning the
+  whole institution feed. A miss therefore costs the institution's feed length (number of
+  officials in that institution). This makes a miss strictly WORSE than any in-top-K rank and
+  is never silently dropped — the honest, conservative choice.
+- Added retrieval **recall@k**: `retrieval_recall_at_k` = fraction of held-out pairs whose
+  applicable official appears in the top-K, plus `k`, surfaced in the `finalsay`
+  `time_to_identify` dict, in `evaluate()` results, and printed in `print_report()`.
+- Updated the module docstring, `time_to_identify()` docstring/comments, and the printed report
+  note to say the FinalSay figure is MEASURED via real retrieval rank (recall@k reported
+  alongside), removing the "IDEALIZATION assuming perfect retrieval" framing.
+- Submission fixtures carry only free `text`, so the submission side tokenizes `text` (and uses
+  those tokens for the audience-boost check); the official side tokenizes the official's `text`
+  and uses `gold_audience` for the boost — token rules identical to comparison.py so the
+  measurement is faithful.
+
+**Tests (`backend/finalsay/tests/test_eval.py`):**
+- `_assert_metric_shape` now asserts `retrieval_recall_at_k` in [0,1] and `k` present on the
+  finalsay `time_to_identify` dict.
+- Renamed `test_time_to_identify_finalsay_at_most_chronological_both_splits` →
+  `test_time_to_identify_finalsay_measured_and_reports_recall_both_splits`, asserting the HONEST
+  measured relationship (recall well-formed, chronological-style baselines inherit chrono cost,
+  and — as measured, not tuned — finalsay cost <= chronological with saving >= 1.0). The
+  false-confirmation-rate tests are unchanged.
+
+**Measured numbers (mock model, honest, NOT tuned):**
+- **temporal split** (held-out=21): FinalSay mean scan cost **13.238** vs chronological 19.286;
+  saving ratio **1.457x**; retrieval **recall@5 = 0.714**.
+- **institution split** (held-out=21): FinalSay mean scan cost **9.429** vs chronological 17.857;
+  saving ratio **1.894x**; retrieval **recall@5 = 0.810**.
+- **The old headline "~19x faster" is gone.** Measured honestly it is ~1.46x (temporal) and
+  ~1.89x (institution). Reported as-is per the integrity constraint; nothing was tuned to
+  preserve a favorable number. Recall@5 (0.71 / 0.81) shows retrieval misses ~19–29% of the
+  time, and those misses are charged the full-feed fallback cost.
+
+**Verification:** `pytest finalsay/tests` = 57 passed (baseline unchanged); both eval splits
+exit 0; `npm run build` green. No frontend change. These numbers are the source for P3's
+committed `docs/eval-results.md` artifact.
+
 ## Autonomous decisions (with reasoning)
 - **Repo layout at workspace root** (`backend/`, `apps/web/`, `scripts/`, `Makefile`) rather
   than a nested `finalsay/` folder — simpler one-command demo. Backend Python package is

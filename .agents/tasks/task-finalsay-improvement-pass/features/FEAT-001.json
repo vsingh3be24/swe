@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-001",
+  "type": "fix",
+  "description": "P1 (HIGHEST PRIORITY, biggest credibility risk): Measure time-to-identify for real. Today backend/finalsay/eval/harness.py hardcodes FinalSay's scan cost to 1.0 as an IDEALIZATION 'assuming perfect retrieval'. Replace that with the ACTUAL rank of the correct official notice within the candidate list produced by the retrieval step, count retrieval misses honestly, and report retrieval recall@k. Do NOT tune anything to preserve the ~19x number; if the measured result is worse, report it as-is.",
+  "status": "completed",
+  "steps": [
+    "In backend/finalsay/eval/harness.py, add a DB-free retrieval-ranking helper that mirrors services/comparison.py:retrieve_candidates() scoring against the fixture officials dict from _officials_by_ext(). For a given gold submission (its `text`, and its institution from `institution_slug`) build the same submission-token set retrieve_candidates uses (_submission_text = issuer+action+redacted_text; here the submission fixture only has `text`, so tokenize the submission text) and score every official in the SAME institution (institution derived from each official's external_id prefix OR the record's institution_slug) by Jaccard token overlap (reuse the same token rules: lowercase [a-z0-9]+ tokens length>2), applying the +0.1 audience boost when audience tokens intersect where audience is available. Sort descending, take top_k=5 (TOP_K from comparison.py). Return the ranked list of external_ids.",
+    "Compute, per held-out pair, the 1-based rank of that pair's official_external_id within the top-K retrieved list. If the correct official is NOT in the top-K (a retrieval MISS), it MUST count as a miss, not be silently excluded. Decide and document the miss scan-cost convention (e.g. treat a miss as scan cost = total officials scanned in that institution's feed, i.e. the correct notice was never surfaced by retrieval so the student falls back to scanning the whole feed) so misses make the FinalSay number worse rather than being dropped.",
+    "Replace the finalsay branch in time_to_identify() so FinalSay's per-pair scan cost is the MEASURED retrieval rank (with the documented miss cost), not the hardcoded 1.0. Keep chronological + the chronological-style baselines (page_change, nli, prompted_llm) exactly as they are (inheriting the chronological rank).",
+    "Add retrieval recall@k reporting: compute recall@k = (fraction of held-out pairs whose correct official appears in the top-K retrieved list) and include it in the finalsay time_to_identify dict (e.g. `retrieval_recall_at_k` and `k`). Surface it in evaluate()'s results and in print_report().",
+    "Update the module docstring, the time_to_identify() docstring/inline comments, and the printed report note in print_report() to state that FinalSay's time-to-identify is now MEASURED via actual retrieval rank (not assumed/idealized), and that retrieval recall@k is reported alongside. Remove the 'IDEALIZATION assuming perfect retrieval' framing where it no longer applies.",
+    "Update backend/finalsay/tests/test_eval.py: the existing test_time_to_identify_finalsay_at_most_chronological_both_splits asserts finalsay_cost <= chrono_cost and saving_ratio >= 1.0. If honest measurement makes that no longer hold on a split, the test MUST be updated to assert the HONEST measured relationship (do NOT tune the metric to keep the old assertion passing). Add an assertion that the new recall@k key is present and in [0,1]. Update _assert_metric_shape for any new keys. Preserve the false-confirmation-rate tests unchanged.",
+    "Run the harness on both splits and record the real measured numbers (mean scan cost, saving ratio, recall@k) for use by P3's artifact."
+  ],
+  "acceptance_criteria": [
+    "harness.py no longer hardcodes FinalSay scan cost to 1.0; the finalsay branch computes it from the actual retrieval rank of official_external_id within the top-K candidate list.",
+    "Retrieval misses are counted honestly (never silently excluded) with a documented miss scan-cost convention.",
+    "The results dict and printed report include a retrieval recall@k value for finalsay.",
+    "Module/function docstrings and the printed report say the FinalSay time-to-identify is MEASURED, not assumed.",
+    "cd backend && .venv/bin/pytest finalsay/tests -q passes (tests updated to the honest measured relationship, not tuned to preserve a favorable number).",
+    "Both eval splits (`--split temporal` and `--split institution`) exit 0.",
+    "Seed remains idempotent and npm run build stays green (no changes expected here, but confirm no regression)."
+  ],
+  "verification": [
+    "cd backend && .venv/bin/pytest finalsay/tests/test_eval.py -q",
+    "cd backend && .venv/bin/pytest finalsay/tests -q",
+    "cd backend && .venv/bin/python -m finalsay.eval.harness --split temporal; echo exit=$?",
+    "cd backend && .venv/bin/python -m finalsay.eval.harness --split institution; echo exit=$?"
+  ],
+  "blocked_reason": null,
+  "findings": "FinalSay time-to-identify is now MEASURED via real retrieval rank (new retrieval_rank() mirrors services/comparison.retrieve_candidates: same-institution filter, Jaccard overlap of [a-z0-9]+ tokens len>2, +0.1 audience boost, top_k=5). Miss-cost convention (documented): applicable official not in top-K => scan cost = institution feed length (student scans whole feed); makes misses worse, never dropped. Added retrieval_recall_at_k + k to the finalsay time_to_identify dict, surfaced in evaluate() and print_report(). MEASURED NUMBERS (mock, honest, not tuned): temporal split (held_out=21): finalsay mean_scan_cost=13.238 vs chronological=19.286, saving_ratio=1.457, recall@5=0.714. institution split (held_out=21): finalsay mean_scan_cost=9.429 vs chronological=17.857, saving_ratio=1.894, recall@5=0.810. The old ~19x headline is gone; honest measurement gives ~1.46x/~1.89x, reported as-is. Ordering test renamed to test_time_to_identify_finalsay_measured_and_reports_recall_both_splits and asserts the honest measured relationship + recall@k in [0,1]; false-confirmation-rate tests unchanged. Verification: pytest finalsay/tests = 57 passed (baseline unchanged); both eval splits exit 0; npm run build green. These numbers feed P3's docs/eval-results.md artifact."
+}

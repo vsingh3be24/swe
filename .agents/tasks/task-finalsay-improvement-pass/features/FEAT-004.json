@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-004",
+  "type": "chore",
+  "description": "P5: Verify the Postgres path actually runs. design.md section 8 names PostgreSQL but the default demo is SQLite. Actually bring up Postgres (docker-compose if possible, else a direct container or host pg_ctl), run migrations (there is NO Alembic; migrations = SQLAlchemy create_all + seed), seed, and run the test suite against it, so the documented Postgres support is verified rather than aspirational. RECORD the result. If it genuinely cannot run in this sandbox, say so PLAINLY rather than claiming success.",
+  "status": "pending",
+  "steps": [
+    "Add a docker-compose.yml (or compose.yml) at repo root defining a postgres service (e.g. postgres:16-alpine) with the documented FinalSay creds/db (user finalsay / password finalsay / db finalsay, port 5432, host 127.0.0.1) matching FINALSAY_DATABASE_URL=postgresql+psycopg2://finalsay:finalsay@127.0.0.1:5432/finalsay. This is the documented artifact regardless of whether compose can be invoked here.",
+    "Attempt to bring Postgres up. ENVIRONMENT REALITY: docker is Podman 5.2.3 and CAN run containers (verified: `docker run --rm hello-world` succeeded), but there is NO docker-compose/podman-compose binary. Try in order within a SINGLE foreground command each (daemons are reaped across separate tool calls, so start-migrate-seed-test MUST all run in one command): (a) `docker compose up -d` if the compose v2 plugin exists; (b) else a direct `docker run -d --name finalsay-pg -e POSTGRES_USER=finalsay -e POSTGRES_PASSWORD=finalsay -e POSTGRES_DB=finalsay -p 5432:5432 postgres:16-alpine` then wait for readiness; (c) else host `pg_ctl` (Postgres 15 installed) per the run_demo.sh --postgres approach. Whichever path works, do the whole sequence in ONE command so the DB survives long enough.",
+    "Against the running Postgres, in the SAME command: export FINALSAY_DATABASE_URL to the postgres URL, run 'migrations' = `.venv/bin/python -c 'from finalsay.db import Base, engine; Base.metadata.create_all(bind=engine)'` (document that the app uses create_all, not Alembic; note this decision), then run the idempotent seed (`.venv/bin/python -m finalsay.seed.seed`) and capture the seed counts, then run the pytest suite pointed at Postgres if feasible (note: conftest.py hardcodes a temp SQLite URL before import, so the existing suite may not honor FINALSAY_DATABASE_URL; if so, run a representative subset or a targeted script that exercises seed + a submit/classify + provenance verify against Postgres instead, and document exactly what was run).",
+    "RECORD the result honestly in docs/eval-results.md OR a dedicated docs/postgres-verification.md (your call, but committed) AND in HANDOFF.md: what command path actually worked (compose / direct container / host pg_ctl / none), the seed counts observed on Postgres, which tests/subset ran green against Postgres, and any limitation (e.g. if the container could not persist, if compose was unavailable, if conftest's SQLite pinning prevented the full suite from running on PG). If Postgres genuinely cannot run here, state that plainly and explain why.",
+    "Keep SQLite the default demo (do NOT change config defaults or conftest). Tear down any container/DB you started at the end of the command so the tree is clean.",
+    "Confirm no regression: default (SQLite) `make test` still passes and both eval splits still exit 0 after this work."
+  ],
+  "acceptance_criteria": [
+    "A committed docker-compose.yml (or compose.yml) defining the Postgres service with the documented FinalSay creds exists at repo root.",
+    "A genuine attempt to run Postgres + create_all + seed + tests was made in-session, and the ACTUAL outcome (success path or the specific reason it could not complete) is recorded honestly in a committed doc and in HANDOFF.md. No false claim of success.",
+    "If Postgres ran: seed counts against Postgres are recorded and at least a representative slice of behavior (seed + submit/classify + provenance verify, or the suite) passed against it.",
+    "SQLite remains the default; default `make test` and both eval splits stay green; any started DB/container is torn down."
+  ],
+  "verification": [
+    "test -f /projects/sandbox/docker-compose.yml || test -f /projects/sandbox/compose.yml && echo compose-present",
+    "cd /projects/sandbox && grep -l finalsay docker-compose.yml compose.yml 2>/dev/null",
+    "cd backend && .venv/bin/pytest finalsay/tests -q  (default SQLite, still green)",
+    "cd backend && .venv/bin/python -m finalsay.eval.harness --split temporal; echo exit=$?"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,7 @@
+{
+  "task_id": "task-finalsay-improvement-pass",
+  "task_description": "Focused improvement pass on the existing FinalSay prototype, worked in STRICT priority order P1..P6 with a budget-stop rule (stop cleanly at a feature boundary if budget is short; a half-finished P1 is worse than a clean stop). P1: measure time-to-identify for real via actual retrieval rank + recall@k (biggest credibility risk; do not tune). P2+P3: run the real HF NLI model (facebook/bart-large-mnli) once on both splits and emit a committed docs/eval-results.md artifact with mock+hf numbers clearly labelled. P4: automated end-to-end smoke test wired into make test/make smoke. P5: verify the Postgres path actually runs (docker-compose/container/host pg_ctl) and record the honest result. P6: clean up the Alerts localStorage stub and diversify benchmark phrasings (deterministic, idempotent, kappa ~0.6, held-out uncontaminated, >=300 pairs). HARD INTEGRITY CONSTRAINT: never inflate/tune/cherry-pick a metric; report worse numbers as-is. Do NOT push, do NOT open a PR; leave the tree committable on branch work/finalsay-prototype.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}
