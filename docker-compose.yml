@@ -1,0 +1,34 @@
+# FinalSay PostgreSQL service (opt-in, design.md section 8).
+#
+# The zero-setup demo defaults to SQLite and needs none of this. This file
+# provisions the PostgreSQL backend named in design.md section 8 so the
+# documented Postgres support is reproducible.
+#
+#   docker compose up -d db          # start Postgres in the background
+#   export FINALSAY_DATABASE_URL=postgresql+psycopg2://finalsay:finalsay@127.0.0.1:5432/finalsay
+#   ( cd backend && .venv/bin/python -c 'from finalsay.db import Base, engine; Base.metadata.create_all(bind=engine)' )
+#   ( cd backend && .venv/bin/python -m finalsay.seed.seed )
+#   docker compose down              # tear down
+#
+# Credentials/db/port match the documented FINALSAY_DATABASE_URL:
+#   postgresql+psycopg2://finalsay:finalsay@127.0.0.1:5432/finalsay
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: finalsay-pg
+    environment:
+      POSTGRES_USER: finalsay
+      POSTGRES_PASSWORD: finalsay
+      POSTGRES_DB: finalsay
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - finalsay_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finalsay -d finalsay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  finalsay_pgdata:

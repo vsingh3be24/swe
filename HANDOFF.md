@@ -749,3 +749,75 @@ conftest `atexit` hook removes its temp dir; `git status` is clean of stray file
   body is present; omitting the body is the correct "build today" call.
 - **No git push / no PR** per the standing instruction. Committed the P4 work locally on
   `work/finalsay-prototype`; left the tree committable.
+
+## P5 — PostgreSQL path VERIFIED (FEAT-004)
+
+**Feature:** FEAT-004 (task-finalsay-improvement-pass). design.md §8 names
+PostgreSQL but the demo defaults to SQLite; P5 brings up Postgres for real,
+applies the schema, seeds it, exercises real behavior against it, and records
+the honest outcome. **Result: it ran and worked.** Full detail in
+`docs/postgres-verification.md`.
+
+### What was added
+- **`docker-compose.yml`** at repo root — a `db` service (`postgres:16-alpine`)
+  with the documented FinalSay creds (`finalsay`/`finalsay`/`finalsay`, bound to
+  `127.0.0.1:5432`), a named volume, and a `pg_isready` healthcheck. Matches
+  `FINALSAY_DATABASE_URL=postgresql+psycopg2://finalsay:finalsay@127.0.0.1:5432/finalsay`.
+  This is the documented artifact regardless of whether compose can be invoked
+  in this sandbox.
+- **`backend/finalsay/tests/pg_smoke.py`** — a targeted verification script (NOT
+  collected by pytest; filename lacks the `test_` prefix and it bypasses
+  conftest). It honors an external `FINALSAY_DATABASE_URL` and runs a real
+  submit/classify + Merkle build/verify (ok→tamper flip) against the live DB.
+
+### What actually ran (single foreground command; daemons don't survive across calls)
+`podman run postgres:16-alpine` → `pg_isready` wait (ready ~5s) → `create_all`
+against Postgres (`create_all OK`) → seed twice (idempotent, identical counts) →
+`pg_smoke` (PASS) → `podman rm -f finalsay-pg` (no leftover container).
+
+Seed counts observed on Postgres (identical to SQLite): institutions 3, users 4,
+official_notices 120, submissions 65, notice_fields 925, benchmark_pairs 308,
+benchmark_annotations 616, merkle_roots 1, merkle_proofs 185, anchor_blocks 1.
+
+`pg_smoke` on Postgres: classify → `label='unresolved' confidence=0.40 gated=True`
+(genuine below-threshold gate); provenance verify `ok=True`, tamper path flips to
+`ok=False, tamper=True`. Live counts after the extra submission: official 120,
+submissions 66, users 4.
+
+### Autonomous decisions (with reasoning)
+- **"Migrations" = SQLAlchemy `create_all`, not Alembic.** The app has no Alembic;
+  `db.py` builds the engine from `FINALSAY_DATABASE_URL` and schema comes from
+  `Base.metadata.create_all` (the seed's `main()` calls it). Adding Alembic was
+  deliberately not done — out of scope for verifying the Postgres path, and
+  `create_all` is the project's actual mechanism. Documented explicitly.
+- **Direct `podman run` container, not `docker compose`.** The compose file is the
+  committed artifact, but there is **no compose runtime here** (`docker compose
+  version` → "looking up compose provider failed"; no `docker-compose`/
+  `podman-compose` binary). Podman 5.2.3 runs plain containers fine, so an
+  equivalent `docker run` was used and worked. The compose file is correct for a
+  normal Docker host.
+- **Default suite left on SQLite.** `conftest.py` pins a temp SQLite URL before
+  import, so the full pytest suite cannot honor an external `FINALSAY_DATABASE_URL`.
+  Left unchanged (hermetic/offline/fast). Real Postgres behavior was proven via
+  the targeted `pg_smoke` script instead of forcing the suite onto Postgres.
+- **SQLite remains the default; nothing in `config.py`/`conftest.py` changed.**
+  Any started container is torn down at the end of the command.
+
+### Limitations (honest)
+- No compose runtime in-sandbox (used `docker run` equivalent).
+- Containers/daemons are reaped across tool calls, so no persistent Postgres
+  remains after the verification command; the whole flow ran in one shot.
+- The default pytest suite does not run on Postgres (conftest SQLite pinning);
+  Postgres behavior is covered by `pg_smoke`, not the full suite.
+
+### Verification (all green)
+- `docker-compose.yml` present at repo root with the finalsay Postgres service.
+- Postgres outcome recorded in `docs/postgres-verification.md` and here.
+- Default SQLite unchanged: `cd backend && .venv/bin/pytest finalsay/tests -q` →
+  **59 passed**; both eval splits (`--split temporal`, `--split institution`)
+  exit 0; `cd apps/web && npm run build` remains green (no frontend change).
+- No leftover container (`podman ps` shows nothing named `finalsay`).
+
+### No git push / no PR
+Committed the P5 work locally on `work/finalsay-prototype`; left the tree
+committable. Awaiting the destination before any push.
