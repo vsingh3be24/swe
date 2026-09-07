@@ -1,0 +1,21 @@
+{
+  "project_type": "Cross-institution notice verification platform prototype: synchronous FastAPI backend + React/Vite PWA frontend + SQLAlchemy relational DB",
+  "language": "Python 3.11 (backend), TypeScript/JavaScript React (frontend)",
+  "build_system": "Python venv + pip for backend; npm + Vite for frontend; Makefile + scripts/run_demo.sh as the one-command orchestrator",
+  "test_framework": "pytest for backend (tests under backend/finalsay/tests/, SQLite temp DB); vite build for frontend smoke",
+  "build_command": "python (3.11) -m venv backend/.venv && backend/.venv/bin/pip install -r backend/requirements.txt ; (cd apps/web && npm install && npm run build)",
+  "test_command": "backend/.venv/bin/pytest backend/finalsay/tests -q",
+  "verification_instructions": "Run pytest for changed modules. For provenance/comparison, assert behavioral properties (merkle proof verifies, tamper flips flag, low-overlap 22-vs-15-Sept pair is contradictory/superseded, low confidence -> unresolved + review_case). For eval, run python -m finalsay.eval.harness --split temporal and --split institution and confirm exit 0 with all metrics printed. For frontend, npm run build must succeed and emit PWA manifest + service worker.",
+  "snapshot_or_generated_files": "None checked in. finalsay.db (SQLite) and node_modules and venvs are gitignored.",
+  "setup_instructions": "Use Python 3.11 explicitly: ~/.pyenv/versions/3.11.15/bin/python for venv creation. Node v22 is default. All work must live under /projects/sandbox (NOT /tmp, which is wiped between shell invocations).",
+  "environment_constraints": "Amazon Linux 2023 sandbox. CRITICAL: (1) /tmp is a tmpfs cleared between separate shell/tool invocations - keep all venvs, DBs, and artifacts under /projects/sandbox. (2) Background daemons are reaped across separate tool calls (--die-with-parent); a server started with & in one command is gone by the next command - so run servers only within a foreground session that stays alive, and write tests to spin up the app in-process (TestClient) rather than relying on a persistent server. (3) PostgreSQL 15 IS installed and works when the parent process stays alive, but the demo DEFAULTS to SQLite for reliability; support Postgres via FINALSAY_DATABASE_URL. (4) Tesseract binary is NOT installable in AL2023 repos - pytesseract import works but there is no OCR engine; the extraction code MUST degrade gracefully (typed OcrUnavailable -> 422 for images, accept pasted/PDF text) and never crash. (5) Network is OPEN_INTERNET so pip/npm installs work; but the demo must run with NO paid API keys and MOCK model + LOCAL anchor by default.",
+  "contribution_requirements": "Follow requirements.md (EARS), design.md (architecture + file layout), tasks.md (ordering). Do NOT substitute the tech stack. Temporal relations MUST be relational-table edges, not a graph DB. ComparisonModel defaults to mock; Anchor defaults to local; both HF and Polygon are env-var opt-in and must never be required for the demo. Unredacted originals must never be persisted. Every actor/use case needs a working UI path (no placeholders). UI plain and professional (no gradients/glassmorphism).",
+  "key_patterns": "Interfaces isolate swappable parts: InstitutionAdapter ABC (3 fixture adapters), ComparisonModel ABC (MockComparisonModel default + HFComparisonModel), Anchor ABC (LocalHashChainAnchor default + PolygonAmoyAnchor). Config via pydantic-settings with FINALSAY_ env prefix. FastAPI routers under finalsay/api/*, services under finalsay/services/*. JWT HS256 via python-jose + passlib bcrypt with require_role dependency. Relationship taxonomy: consistent, contradictory, superseded, corrected, extended, cancelled, unresolved.",
+  "relevant_files": [
+    "/projects/sandbox/requirements.md",
+    "/projects/sandbox/design.md",
+    "/projects/sandbox/tasks.md",
+    "/projects/sandbox/HANDOFF.md"
+  ],
+  "directory_structure": "backend/finalsay/{main,config,db,models,schemas,auth,logging_conf}.py + api/ + services/ + adapters/ + models_iface/ + eval/ + seed/ + tests/ ; apps/web (React+Vite PWA) ; scripts/run_demo.sh ; Makefile ; README.md . Full intended layout is in design.md section 1."
+}

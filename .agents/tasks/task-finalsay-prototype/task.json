@@ -1,0 +1,22 @@
+{
+  "task_id": "task-finalsay-prototype",
+  "task_description": "Build a runnable end-to-end prototype of FinalSay, a cross-institution notice verification platform: FastAPI backend + React/Vite PWA, SQLAlchemy relational model with temporal edges, Tesseract OCR (degrades when unavailable), ComparisonModel interface (mock default, HF opt-in), Anchor interface (local hash-chain default, Polygon Amoy opt-in), reviewer console with Cohen's kappa, idempotent synthetic seed for 3 institutions, and a CLI evaluation harness with four baselines and two splits. One-command demo, no paid API keys.",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "Backend pytest 50 passed (final, after review fixes). Eval harness exits 0 for both temporal and institution splits with HONEST metrics after the v1 review fix (temporal FinalSay F1 ~0.05, institution ~0.74; FinalSay uniquely 0.000 false-confirmation rate vs baselines 0.14-0.43 because confidence gating routes ambiguity to the reviewer queue instead of guessing). Frontend `npm run build` green, emits PWA manifest.webmanifest + sw.js + workbox. Live uvicorn HTTP smoke passed end to end: health, JWT login (all roles), student submit 'postponed to 22 Sept' -> correctly 'superseded' 0.86 (not consistent) with rationale + persisted edge, admin/seed builds daily Merkle root, reviewer queue + kappa 0.663, 120 official notices. Semantic review: v1 NEEDS_CHANGES (8 issues), all fixed by the coder; v2 APPROVED with 0 open issues and no regressions. Test quality reviewed twice: tests exercise real code paths (merkle build+verify per leaf, real content-mutation tamper detection incl. structured-field edits, prev_hash chaining, confidence gating creating review_case + edge, public-register-cannot-self-assign-role, fresh-seed integrity verifies ok=true) and would fail if reverted. docker_build skipped: project intentionally ships no Dockerfile (spec forbids Docker microservices). Known deviations (SQLite default instead of Postgres due to sandbox daemon reaping; Tesseract OCR engine unavailable so image OCR degrades to HTTP 422) documented in HANDOFF.md and README. Temporary review-only git baseline removed; tree left committable for the orchestrator to init/publish.",
+    "review": {
+      "v1": "NEEDS_CHANGES - 3 blockers + 5 lesser issues",
+      "v2": "APPROVED - all resolved, no regressions",
+      "review_files": [
+        ".agents/tasks/task-finalsay-prototype/2026-09-07-090713-review.md",
+        ".agents/tasks/task-finalsay-prototype/2026-09-07-092953-review.md"
+      ]
+    }
+  }
+}

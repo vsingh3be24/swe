@@ -1,0 +1,752 @@
+[
+  {
+    "key": "northgate-consistent-00",
+    "institution_slug": "northgate",
+    "text": "Issued by: Office of the Registrar, Northgate University\nSubject: Mid-term examination\nDate: 1 Jan\nTo all students.\nThe mid-term examination is scheduled on 1 Jan for all students.\nFor queries contact the office during working hours.\nThis matches the official schedule and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "date": "1 Jan",
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-contradictory-01",
+    "institution_slug": "northgate",
+    "text": "According to this notice, the mid-term examination is on 3 Nov, whereas the official notice states 15 Sep.",
+    "gold_label": "contradictory",
+    "official_external_id": "northgate-exam-10",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "claimed on 3 Nov"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-superseded-02",
+    "institution_slug": "northgate",
+    "text": "Notice: the mid-term examination for all students has been postponed and rescheduled to 22 Sep, moving away from the earlier 15 Sep date.",
+    "gold_label": "superseded",
+    "official_external_id": "northgate-exam-20",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-corrected-03",
+    "institution_slug": "northgate",
+    "text": "Correction: an erratum has been issued for the mid-term examination. The corrected venue is Hall B; all other details remain.",
+    "gold_label": "corrected",
+    "official_external_id": "northgate-exam-30",
+    "gold_fields": {
+      "action": "correction issued for venue"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-extended-04",
+    "institution_slug": "northgate",
+    "text": "The deadline for the mid-term examination registration has been extended to 28 Oct, beyond the original 14 Oct cutoff.",
+    "gold_label": "extended",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "deadline extended to 28 Oct"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-cancelled-05",
+    "institution_slug": "northgate",
+    "text": "This is to inform all students that the mid-term examination has been cancelled until further notice.",
+    "gold_label": "cancelled",
+    "official_external_id": "northgate-exam-10",
+    "gold_fields": {
+      "action": "cancelled until further notice"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-unresolved-06",
+    "institution_slug": "northgate",
+    "text": "Kindly clarify the arrangement mentioned in the circular; the details appear unclear regarding venue and timing.",
+    "gold_label": "unresolved",
+    "official_external_id": "northgate-exam-20",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-consistent-07",
+    "institution_slug": "northgate",
+    "text": "Issued by: Office of the Registrar, Northgate University\nSubject: Mid-term examination\nDate: 4 Jul\nTo all students.\nThe mid-term examination is scheduled on 4 Jul for all students.\nFor queries contact the office during working hours.\nThis matches the official schedule and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "northgate-exam-30",
+    "gold_fields": {
+      "date": "4 Jul",
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-contradictory-08",
+    "institution_slug": "northgate",
+    "text": "According to this notice, the mid-term examination is on 3 Nov, whereas the official notice states 15 Sep.",
+    "gold_label": "contradictory",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "claimed on 3 Nov"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-superseded-09",
+    "institution_slug": "northgate",
+    "text": "Notice: the mid-term examination for all students has been postponed and rescheduled to 22 Sep, moving away from the earlier 15 Sep date.",
+    "gold_label": "superseded",
+    "official_external_id": "northgate-exam-10",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-corrected-10",
+    "institution_slug": "northgate",
+    "text": "Correction: an erratum has been issued for the mid-term examination. The corrected venue is Hall B; all other details remain.",
+    "gold_label": "corrected",
+    "official_external_id": "northgate-exam-20",
+    "gold_fields": {
+      "action": "correction issued for venue"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-extended-11",
+    "institution_slug": "northgate",
+    "text": "The deadline for the mid-term examination registration has been extended to 28 Oct, beyond the original 14 Oct cutoff.",
+    "gold_label": "extended",
+    "official_external_id": "northgate-exam-30",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "deadline extended to 28 Oct"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-cancelled-12",
+    "institution_slug": "northgate",
+    "text": "This is to inform all students that the mid-term examination has been cancelled until further notice.",
+    "gold_label": "cancelled",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "action": "cancelled until further notice"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-unresolved-13",
+    "institution_slug": "northgate",
+    "text": "Kindly clarify the arrangement mentioned in the circular; the details appear unclear regarding venue and timing.",
+    "gold_label": "unresolved",
+    "official_external_id": "northgate-exam-10",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "northgate-consistent-14",
+    "institution_slug": "northgate",
+    "text": "Just confirming that the mid-term examination is going ahead as announced for all students; the schedule I received matches the official one exactly and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "northgate-exam-20",
+    "gold_fields": {
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-contradictory-15",
+    "institution_slug": "northgate",
+    "text": "The date I was told for the mid-term examination is 3 Nov, which is not the 15 Sep printed on the official notice.",
+    "gold_label": "contradictory",
+    "official_external_id": "northgate-exam-30",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "date given as 3 Nov"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-superseded-16",
+    "institution_slug": "northgate",
+    "text": "Heads up: the mid-term examination originally set for 15 Sep will now take place on 22 Sep instead.",
+    "gold_label": "superseded",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "now on 22 Sep"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-corrected-17",
+    "institution_slug": "northgate",
+    "text": "Please note a revised venue for the mid-term examination: it will be held in Hall B; everything else stays the same.",
+    "gold_label": "corrected",
+    "official_external_id": "northgate-exam-10",
+    "gold_fields": {
+      "action": "revised venue to Hall B"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-extended-18",
+    "institution_slug": "northgate",
+    "text": "The registration window for the mid-term examination, first closing on 14 Oct, now runs through 28 Oct to give everyone more time.",
+    "gold_label": "extended",
+    "official_external_id": "northgate-exam-20",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "window now runs to 28 Oct"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-cancelled-19",
+    "institution_slug": "northgate",
+    "text": "We regret to inform all students that the mid-term examination will no longer be taking place this term.",
+    "gold_label": "cancelled",
+    "official_external_id": "northgate-exam-30",
+    "gold_fields": {
+      "action": "no longer taking place"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-unresolved-20",
+    "institution_slug": "northgate",
+    "text": "There seems to be some confusion about the recent circular; the timing and venue details are not entirely clear to me.",
+    "gold_label": "unresolved",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-consistent-21",
+    "institution_slug": "riverside",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Mid-term examination\nDate: 11 Nov\nTo all students.\nThe mid-term examination is scheduled on 11 Nov for all students.\nFor queries contact the office during working hours.\nThis matches the official schedule and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "riverside-exam-10",
+    "gold_fields": {
+      "date": "11 Nov",
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-contradictory-22",
+    "institution_slug": "riverside",
+    "text": "According to this notice, the mid-term examination is on 3 Nov, whereas the official notice states 15 Sep.",
+    "gold_label": "contradictory",
+    "official_external_id": "riverside-exam-20",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "claimed on 3 Nov"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-superseded-23",
+    "institution_slug": "riverside",
+    "text": "Notice: the mid-term examination for all students has been postponed and rescheduled to 22 Sep, moving away from the earlier 15 Sep date.",
+    "gold_label": "superseded",
+    "official_external_id": "riverside-exam-30",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-corrected-24",
+    "institution_slug": "riverside",
+    "text": "Correction: an erratum has been issued for the mid-term examination. The corrected venue is Hall B; all other details remain.",
+    "gold_label": "corrected",
+    "official_external_id": "riverside-exam-00",
+    "gold_fields": {
+      "action": "correction issued for venue"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-extended-25",
+    "institution_slug": "riverside",
+    "text": "The deadline for the mid-term examination registration has been extended to 28 Oct, beyond the original 14 Oct cutoff.",
+    "gold_label": "extended",
+    "official_external_id": "riverside-exam-10",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "deadline extended to 28 Oct"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-cancelled-26",
+    "institution_slug": "riverside",
+    "text": "This is to inform all students that the mid-term examination has been cancelled until further notice.",
+    "gold_label": "cancelled",
+    "official_external_id": "riverside-exam-20",
+    "gold_fields": {
+      "action": "cancelled until further notice"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-unresolved-27",
+    "institution_slug": "riverside",
+    "text": "Kindly clarify the arrangement mentioned in the circular; the details appear unclear regarding venue and timing.",
+    "gold_label": "unresolved",
+    "official_external_id": "riverside-exam-30",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-consistent-28",
+    "institution_slug": "riverside",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Mid-term examination\nDate: 1 Jan\nTo all students.\nThe mid-term examination is scheduled on 1 Jan for all students.\nFor queries contact the office during working hours.\nThis matches the official schedule and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "riverside-exam-00",
+    "gold_fields": {
+      "date": "1 Jan",
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-contradictory-29",
+    "institution_slug": "riverside",
+    "text": "According to this notice, the mid-term examination is on 3 Nov, whereas the official notice states 15 Sep.",
+    "gold_label": "contradictory",
+    "official_external_id": "riverside-exam-10",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "claimed on 3 Nov"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-superseded-30",
+    "institution_slug": "riverside",
+    "text": "Notice: the mid-term examination for all students has been postponed and rescheduled to 22 Sep, moving away from the earlier 15 Sep date.",
+    "gold_label": "superseded",
+    "official_external_id": "riverside-exam-20",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-corrected-31",
+    "institution_slug": "riverside",
+    "text": "Correction: an erratum has been issued for the mid-term examination. The corrected venue is Hall B; all other details remain.",
+    "gold_label": "corrected",
+    "official_external_id": "riverside-exam-30",
+    "gold_fields": {
+      "action": "correction issued for venue"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-extended-32",
+    "institution_slug": "riverside",
+    "text": "The deadline for the mid-term examination registration has been extended to 28 Oct, beyond the original 14 Oct cutoff.",
+    "gold_label": "extended",
+    "official_external_id": "riverside-exam-00",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "deadline extended to 28 Oct"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-cancelled-33",
+    "institution_slug": "riverside",
+    "text": "This is to inform all students that the mid-term examination has been cancelled until further notice.",
+    "gold_label": "cancelled",
+    "official_external_id": "riverside-exam-10",
+    "gold_fields": {
+      "action": "cancelled until further notice"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-unresolved-34",
+    "institution_slug": "riverside",
+    "text": "Kindly clarify the arrangement mentioned in the circular; the details appear unclear regarding venue and timing.",
+    "gold_label": "unresolved",
+    "official_external_id": "riverside-exam-20",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-consistent-35",
+    "institution_slug": "riverside",
+    "text": "Just confirming that the mid-term examination is going ahead as announced for all students; the schedule I received matches the official one exactly and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "riverside-exam-30",
+    "gold_fields": {
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-contradictory-36",
+    "institution_slug": "riverside",
+    "text": "The date I was told for the mid-term examination is 3 Nov, which is not the 15 Sep printed on the official notice.",
+    "gold_label": "contradictory",
+    "official_external_id": "riverside-exam-00",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "date given as 3 Nov"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-superseded-37",
+    "institution_slug": "riverside",
+    "text": "Heads up: the mid-term examination originally set for 15 Sep will now take place on 22 Sep instead.",
+    "gold_label": "superseded",
+    "official_external_id": "riverside-exam-10",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "now on 22 Sep"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-corrected-38",
+    "institution_slug": "riverside",
+    "text": "Please note a revised venue for the mid-term examination: it will be held in Hall B; everything else stays the same.",
+    "gold_label": "corrected",
+    "official_external_id": "riverside-exam-20",
+    "gold_fields": {
+      "action": "revised venue to Hall B"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-extended-39",
+    "institution_slug": "riverside",
+    "text": "The registration window for the mid-term examination, first closing on 14 Oct, now runs through 28 Oct to give everyone more time.",
+    "gold_label": "extended",
+    "official_external_id": "riverside-exam-30",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "window now runs to 28 Oct"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-cancelled-40",
+    "institution_slug": "riverside",
+    "text": "We regret to inform all students that the mid-term examination will no longer be taking place this term.",
+    "gold_label": "cancelled",
+    "official_external_id": "riverside-exam-00",
+    "gold_fields": {
+      "action": "no longer taking place"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "riverside-unresolved-41",
+    "institution_slug": "riverside",
+    "text": "There seems to be some confusion about the recent circular; the timing and venue details are not entirely clear to me.",
+    "gold_label": "unresolved",
+    "official_external_id": "riverside-exam-10",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-consistent-42",
+    "institution_slug": "summit",
+    "text": "Issued by: Registrar Office, Summit College\nSubject: Mid-term examination\nDate: 21 Sep\nTo all students.\nThe mid-term examination is scheduled on 21 Sep for all students.\nFor queries contact the office during working hours.\nThis matches the official schedule and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "summit-exam-20",
+    "gold_fields": {
+      "date": "21 Sep",
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-contradictory-43",
+    "institution_slug": "summit",
+    "text": "According to this notice, the mid-term examination is on 3 Nov, whereas the official notice states 15 Sep.",
+    "gold_label": "contradictory",
+    "official_external_id": "summit-exam-30",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "claimed on 3 Nov"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-superseded-44",
+    "institution_slug": "summit",
+    "text": "Notice: the mid-term examination for all students has been postponed and rescheduled to 22 Sep, moving away from the earlier 15 Sep date.",
+    "gold_label": "superseded",
+    "official_external_id": "summit-exam-00",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-corrected-45",
+    "institution_slug": "summit",
+    "text": "Correction: an erratum has been issued for the mid-term examination. The corrected venue is Hall B; all other details remain.",
+    "gold_label": "corrected",
+    "official_external_id": "summit-exam-10",
+    "gold_fields": {
+      "action": "correction issued for venue"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-extended-46",
+    "institution_slug": "summit",
+    "text": "The deadline for the mid-term examination registration has been extended to 28 Oct, beyond the original 14 Oct cutoff.",
+    "gold_label": "extended",
+    "official_external_id": "summit-exam-20",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "deadline extended to 28 Oct"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-cancelled-47",
+    "institution_slug": "summit",
+    "text": "This is to inform all students that the mid-term examination has been cancelled until further notice.",
+    "gold_label": "cancelled",
+    "official_external_id": "summit-exam-30",
+    "gold_fields": {
+      "action": "cancelled until further notice"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-unresolved-48",
+    "institution_slug": "summit",
+    "text": "Kindly clarify the arrangement mentioned in the circular; the details appear unclear regarding venue and timing.",
+    "gold_label": "unresolved",
+    "official_external_id": "summit-exam-00",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-consistent-49",
+    "institution_slug": "summit",
+    "text": "Issued by: Registrar Office, Summit College\nSubject: Mid-term examination\nDate: 11 Nov\nTo all students.\nThe mid-term examination is scheduled on 11 Nov for all students.\nFor queries contact the office during working hours.\nThis matches the official schedule and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "summit-exam-10",
+    "gold_fields": {
+      "date": "11 Nov",
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-contradictory-50",
+    "institution_slug": "summit",
+    "text": "According to this notice, the mid-term examination is on 3 Nov, whereas the official notice states 15 Sep.",
+    "gold_label": "contradictory",
+    "official_external_id": "summit-exam-20",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "claimed on 3 Nov"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-superseded-51",
+    "institution_slug": "summit",
+    "text": "Notice: the mid-term examination for all students has been postponed and rescheduled to 22 Sep, moving away from the earlier 15 Sep date.",
+    "gold_label": "superseded",
+    "official_external_id": "summit-exam-30",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-corrected-52",
+    "institution_slug": "summit",
+    "text": "Correction: an erratum has been issued for the mid-term examination. The corrected venue is Hall B; all other details remain.",
+    "gold_label": "corrected",
+    "official_external_id": "summit-exam-00",
+    "gold_fields": {
+      "action": "correction issued for venue"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-extended-53",
+    "institution_slug": "summit",
+    "text": "The deadline for the mid-term examination registration has been extended to 28 Oct, beyond the original 14 Oct cutoff.",
+    "gold_label": "extended",
+    "official_external_id": "summit-exam-10",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "deadline extended to 28 Oct"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-cancelled-54",
+    "institution_slug": "summit",
+    "text": "This is to inform all students that the mid-term examination has been cancelled until further notice.",
+    "gold_label": "cancelled",
+    "official_external_id": "summit-exam-20",
+    "gold_fields": {
+      "action": "cancelled until further notice"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-unresolved-55",
+    "institution_slug": "summit",
+    "text": "Kindly clarify the arrangement mentioned in the circular; the details appear unclear regarding venue and timing.",
+    "gold_label": "unresolved",
+    "official_external_id": "summit-exam-30",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "summit-consistent-56",
+    "institution_slug": "summit",
+    "text": "Just confirming that the mid-term examination is going ahead as announced for all students; the schedule I received matches the official one exactly and remains unchanged.",
+    "gold_label": "consistent",
+    "official_external_id": "summit-exam-00",
+    "gold_fields": {
+      "action": "confirmed as scheduled"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-contradictory-57",
+    "institution_slug": "summit",
+    "text": "The date I was told for the mid-term examination is 3 Nov, which is not the 15 Sep printed on the official notice.",
+    "gold_label": "contradictory",
+    "official_external_id": "summit-exam-10",
+    "gold_fields": {
+      "date": "3 Nov",
+      "action": "date given as 3 Nov"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-superseded-58",
+    "institution_slug": "summit",
+    "text": "Heads up: the mid-term examination originally set for 15 Sep will now take place on 22 Sep instead.",
+    "gold_label": "superseded",
+    "official_external_id": "summit-exam-20",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "now on 22 Sep"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-corrected-59",
+    "institution_slug": "summit",
+    "text": "Please note a revised venue for the mid-term examination: it will be held in Hall B; everything else stays the same.",
+    "gold_label": "corrected",
+    "official_external_id": "summit-exam-30",
+    "gold_fields": {
+      "action": "revised venue to Hall B"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-extended-60",
+    "institution_slug": "summit",
+    "text": "The registration window for the mid-term examination, first closing on 14 Oct, now runs through 28 Oct to give everyone more time.",
+    "gold_label": "extended",
+    "official_external_id": "summit-exam-00",
+    "gold_fields": {
+      "deadline": "28 Oct",
+      "action": "window now runs to 28 Oct"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-cancelled-61",
+    "institution_slug": "summit",
+    "text": "We regret to inform all students that the mid-term examination will no longer be taking place this term.",
+    "gold_label": "cancelled",
+    "official_external_id": "summit-exam-10",
+    "gold_fields": {
+      "action": "no longer taking place"
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "summit-unresolved-62",
+    "institution_slug": "summit",
+    "text": "There seems to be some confusion about the recent circular; the timing and venue details are not entirely clear to me.",
+    "gold_label": "unresolved",
+    "official_external_id": "summit-exam-20",
+    "gold_fields": {
+      "action": null
+    },
+    "temporal_bucket": 1
+  },
+  {
+    "key": "northgate-spotlight-2215",
+    "institution_slug": "northgate",
+    "text": "Mid-term exam moved. It is postponed to 22 Sep from the earlier date.",
+    "gold_label": "superseded",
+    "official_external_id": "northgate-exam-00",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  },
+  {
+    "key": "riverside-spotlight-2215",
+    "institution_slug": "riverside",
+    "text": "Mid-term exam moved. It is postponed to 22 Sep from the earlier date.",
+    "gold_label": "superseded",
+    "official_external_id": "riverside-exam-00",
+    "gold_fields": {
+      "date": "22 Sep",
+      "action": "postponed to 22 Sep"
+    },
+    "temporal_bucket": 0
+  }
+]

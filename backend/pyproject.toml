@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finalsay"
+version = "0.1.0"
+description = "FinalSay — cross-institution notice verification platform prototype"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["finalsay*"]
+
+[tool.pytest.ini_options]
+testpaths = ["finalsay/tests"]
+addopts = "-q"

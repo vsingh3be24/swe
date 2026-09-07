@@ -1,0 +1,402 @@
+[
+  {
+    "external_id": "riverside-exam-00",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Mid-term examination\nDate: 1 Jan\nTo all students.\nThe mid-term examination is scheduled on 1 Jan for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-exam-00",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "1 Jan",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The mid-term examination is scheduled on 1 Jan for all students."
+  },
+  {
+    "external_id": "riverside-library-01",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Library extended hours\nDate: 2 Feb\nTo all first-year students.\nThe library extended hours is scheduled on 2 Feb for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-library-01",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "2 Feb",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The library extended hours is scheduled on 2 Feb for all first-year students."
+  },
+  {
+    "external_id": "riverside-hostel-02",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Hostel maintenance\nDate: 3 Mar\nTo all students.\nThe hostel maintenance is scheduled on 3 Mar for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-hostel-02",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "3 Mar",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The hostel maintenance is scheduled on 3 Mar for all students."
+  },
+  {
+    "external_id": "riverside-fees-03",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Fee payment window\nDate: 4 Apr\nTo all first-year students.\nThe fee payment window is scheduled on 4 Apr for all first-year students.\nDeadline: 11 Apr.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-fees-03",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "4 Apr",
+    "gold_deadline": "11 Apr.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The fee payment window is scheduled on 4 Apr for all first-year students."
+  },
+  {
+    "external_id": "riverside-convocation-04",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Convocation ceremony\nDate: 5 May\nTo all students.\nThe convocation ceremony is scheduled on 5 May for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-convocation-04",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "5 May",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The convocation ceremony is scheduled on 5 May for all students."
+  },
+  {
+    "external_id": "riverside-sports-05",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Sports meet\nDate: 6 Jun\nTo all first-year students.\nThe sports meet is scheduled on 6 Jun for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-sports-05",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "6 Jun",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The sports meet is scheduled on 6 Jun for all first-year students."
+  },
+  {
+    "external_id": "riverside-lecture-06",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Guest lecture series\nDate: 7 Jul\nTo all students.\nThe guest lecture series is scheduled on 7 Jul for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-lecture-06",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "7 Jul",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The guest lecture series is scheduled on 7 Jul for all students."
+  },
+  {
+    "external_id": "riverside-scholarship-07",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Scholarship applications\nDate: 8 Aug\nTo all first-year students.\nThe scholarship applications is scheduled on 8 Aug for all first-year students.\nDeadline: 15 Aug.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-scholarship-07",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "8 Aug",
+    "gold_deadline": "15 Aug.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The scholarship applications is scheduled on 8 Aug for all first-year students."
+  },
+  {
+    "external_id": "riverside-placement-08",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Campus placement drive\nDate: 9 Sep\nTo all students.\nThe campus placement drive is scheduled on 9 Sep for all students.\nDeadline: 16 Sep.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-placement-08",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "9 Sep",
+    "gold_deadline": "16 Sep.",
+    "gold_audience": "all students",
+    "gold_action": "The campus placement drive is scheduled on 9 Sep for all students."
+  },
+  {
+    "external_id": "riverside-registration-09",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Semester registration\nDate: 10 Oct\nTo all first-year students.\nThe semester registration is scheduled on 10 Oct for all first-year students.\nDeadline: 17 Oct.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-registration-09",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "10 Oct",
+    "gold_deadline": "17 Oct.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The semester registration is scheduled on 10 Oct for all first-year students."
+  },
+  {
+    "external_id": "riverside-exam-10",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Mid-term examination\nDate: 11 Nov\nTo all students.\nThe mid-term examination is scheduled on 11 Nov for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-exam-10",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "11 Nov",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The mid-term examination is scheduled on 11 Nov for all students."
+  },
+  {
+    "external_id": "riverside-library-11",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Library extended hours\nDate: 12 Dec\nTo all first-year students.\nThe library extended hours is scheduled on 12 Dec for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-library-11",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "12 Dec",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The library extended hours is scheduled on 12 Dec for all first-year students."
+  },
+  {
+    "external_id": "riverside-hostel-12",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Hostel maintenance\nDate: 13 Jan\nTo all students.\nThe hostel maintenance is scheduled on 13 Jan for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-hostel-12",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "13 Jan",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The hostel maintenance is scheduled on 13 Jan for all students."
+  },
+  {
+    "external_id": "riverside-fees-13",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Fee payment window\nDate: 14 Feb\nTo all first-year students.\nThe fee payment window is scheduled on 14 Feb for all first-year students.\nDeadline: 21 Feb.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-fees-13",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "14 Feb",
+    "gold_deadline": "21 Feb.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The fee payment window is scheduled on 14 Feb for all first-year students."
+  },
+  {
+    "external_id": "riverside-convocation-14",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Convocation ceremony\nDate: 15 Mar\nTo all students.\nThe convocation ceremony is scheduled on 15 Mar for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-convocation-14",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "15 Mar",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The convocation ceremony is scheduled on 15 Mar for all students."
+  },
+  {
+    "external_id": "riverside-sports-15",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Sports meet\nDate: 16 Apr\nTo all first-year students.\nThe sports meet is scheduled on 16 Apr for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-sports-15",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "16 Apr",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The sports meet is scheduled on 16 Apr for all first-year students."
+  },
+  {
+    "external_id": "riverside-lecture-16",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Guest lecture series\nDate: 17 May\nTo all students.\nThe guest lecture series is scheduled on 17 May for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-lecture-16",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "17 May",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The guest lecture series is scheduled on 17 May for all students."
+  },
+  {
+    "external_id": "riverside-scholarship-17",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Scholarship applications\nDate: 18 Jun\nTo all first-year students.\nThe scholarship applications is scheduled on 18 Jun for all first-year students.\nDeadline: 25 Jun.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-scholarship-17",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "18 Jun",
+    "gold_deadline": "25 Jun.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The scholarship applications is scheduled on 18 Jun for all first-year students."
+  },
+  {
+    "external_id": "riverside-placement-18",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Campus placement drive\nDate: 19 Jul\nTo all students.\nThe campus placement drive is scheduled on 19 Jul for all students.\nDeadline: 26 Jul.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-placement-18",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "19 Jul",
+    "gold_deadline": "26 Jul.",
+    "gold_audience": "all students",
+    "gold_action": "The campus placement drive is scheduled on 19 Jul for all students."
+  },
+  {
+    "external_id": "riverside-registration-19",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Semester registration\nDate: 20 Aug\nTo all first-year students.\nThe semester registration is scheduled on 20 Aug for all first-year students.\nDeadline: 27 Aug.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-registration-19",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "20 Aug",
+    "gold_deadline": "27 Aug.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The semester registration is scheduled on 20 Aug for all first-year students."
+  },
+  {
+    "external_id": "riverside-exam-20",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Mid-term examination\nDate: 21 Sep\nTo all students.\nThe mid-term examination is scheduled on 21 Sep for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-exam-20",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "21 Sep",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The mid-term examination is scheduled on 21 Sep for all students."
+  },
+  {
+    "external_id": "riverside-library-21",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Library extended hours\nDate: 22 Oct\nTo all first-year students.\nThe library extended hours is scheduled on 22 Oct for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-library-21",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "22 Oct",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The library extended hours is scheduled on 22 Oct for all first-year students."
+  },
+  {
+    "external_id": "riverside-hostel-22",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Hostel maintenance\nDate: 23 Nov\nTo all students.\nThe hostel maintenance is scheduled on 23 Nov for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-hostel-22",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "23 Nov",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The hostel maintenance is scheduled on 23 Nov for all students."
+  },
+  {
+    "external_id": "riverside-fees-23",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Fee payment window\nDate: 24 Dec\nTo all first-year students.\nThe fee payment window is scheduled on 24 Dec for all first-year students.\nDeadline: 28 Dec.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-fees-23",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "24 Dec",
+    "gold_deadline": "28 Dec.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The fee payment window is scheduled on 24 Dec for all first-year students."
+  },
+  {
+    "external_id": "riverside-convocation-24",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Convocation ceremony\nDate: 25 Jan\nTo all students.\nThe convocation ceremony is scheduled on 25 Jan for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-convocation-24",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "25 Jan",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The convocation ceremony is scheduled on 25 Jan for all students."
+  },
+  {
+    "external_id": "riverside-sports-25",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Sports meet\nDate: 26 Feb\nTo all first-year students.\nThe sports meet is scheduled on 26 Feb for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-sports-25",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "26 Feb",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The sports meet is scheduled on 26 Feb for all first-year students."
+  },
+  {
+    "external_id": "riverside-lecture-26",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Guest lecture series\nDate: 27 Mar\nTo all students.\nThe guest lecture series is scheduled on 27 Mar for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-lecture-26",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "27 Mar",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The guest lecture series is scheduled on 27 Mar for all students."
+  },
+  {
+    "external_id": "riverside-scholarship-27",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Scholarship applications\nDate: 1 Apr\nTo all first-year students.\nThe scholarship applications is scheduled on 1 Apr for all first-year students.\nDeadline: 8 Apr.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-scholarship-27",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "1 Apr",
+    "gold_deadline": "8 Apr.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The scholarship applications is scheduled on 1 Apr for all first-year students."
+  },
+  {
+    "external_id": "riverside-placement-28",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Campus placement drive\nDate: 2 May\nTo all students.\nThe campus placement drive is scheduled on 2 May for all students.\nDeadline: 9 May.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-placement-28",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "2 May",
+    "gold_deadline": "9 May.",
+    "gold_audience": "all students",
+    "gold_action": "The campus placement drive is scheduled on 2 May for all students."
+  },
+  {
+    "external_id": "riverside-registration-29",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Semester registration\nDate: 3 Jun\nTo all first-year students.\nThe semester registration is scheduled on 3 Jun for all first-year students.\nDeadline: 10 Jun.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-registration-29",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "3 Jun",
+    "gold_deadline": "10 Jun.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The semester registration is scheduled on 3 Jun for all first-year students."
+  },
+  {
+    "external_id": "riverside-exam-30",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Mid-term examination\nDate: 4 Jul\nTo all students.\nThe mid-term examination is scheduled on 4 Jul for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-exam-30",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "4 Jul",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The mid-term examination is scheduled on 4 Jul for all students."
+  },
+  {
+    "external_id": "riverside-library-31",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Library extended hours\nDate: 5 Aug\nTo all first-year students.\nThe library extended hours is scheduled on 5 Aug for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-library-31",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "5 Aug",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The library extended hours is scheduled on 5 Aug for all first-year students."
+  },
+  {
+    "external_id": "riverside-hostel-32",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Hostel maintenance\nDate: 6 Sep\nTo all students.\nThe hostel maintenance is scheduled on 6 Sep for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-hostel-32",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "6 Sep",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The hostel maintenance is scheduled on 6 Sep for all students."
+  },
+  {
+    "external_id": "riverside-fees-33",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Fee payment window\nDate: 7 Oct\nTo all first-year students.\nThe fee payment window is scheduled on 7 Oct for all first-year students.\nDeadline: 14 Oct.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-fees-33",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "7 Oct",
+    "gold_deadline": "14 Oct.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The fee payment window is scheduled on 7 Oct for all first-year students."
+  },
+  {
+    "external_id": "riverside-convocation-34",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Convocation ceremony\nDate: 8 Nov\nTo all students.\nThe convocation ceremony is scheduled on 8 Nov for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-convocation-34",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "8 Nov",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The convocation ceremony is scheduled on 8 Nov for all students."
+  },
+  {
+    "external_id": "riverside-sports-35",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Sports meet\nDate: 9 Dec\nTo all first-year students.\nThe sports meet is scheduled on 9 Dec for all first-year students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-sports-35",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "9 Dec",
+    "gold_deadline": null,
+    "gold_audience": "all first-year students",
+    "gold_action": "The sports meet is scheduled on 9 Dec for all first-year students."
+  },
+  {
+    "external_id": "riverside-lecture-36",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Guest lecture series\nDate: 10 Jan\nTo all students.\nThe guest lecture series is scheduled on 10 Jan for all students.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-lecture-36",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "10 Jan",
+    "gold_deadline": null,
+    "gold_audience": "all students",
+    "gold_action": "The guest lecture series is scheduled on 10 Jan for all students."
+  },
+  {
+    "external_id": "riverside-scholarship-37",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Scholarship applications\nDate: 11 Feb\nTo all first-year students.\nThe scholarship applications is scheduled on 11 Feb for all first-year students.\nDeadline: 18 Feb.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-scholarship-37",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "11 Feb",
+    "gold_deadline": "18 Feb.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The scholarship applications is scheduled on 11 Feb for all first-year students."
+  },
+  {
+    "external_id": "riverside-placement-38",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Campus placement drive\nDate: 12 Mar\nTo all students.\nThe campus placement drive is scheduled on 12 Mar for all students.\nDeadline: 19 Mar.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-placement-38",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "12 Mar",
+    "gold_deadline": "19 Mar.",
+    "gold_audience": "all students",
+    "gold_action": "The campus placement drive is scheduled on 12 Mar for all students."
+  },
+  {
+    "external_id": "riverside-registration-39",
+    "text": "Issued by: Academic Section, Riverside Institute\nSubject: Semester registration\nDate: 13 Apr\nTo all first-year students.\nThe semester registration is scheduled on 13 Apr for all first-year students.\nDeadline: 20 Apr.\nFor queries contact the office during working hours.",
+    "source_url": "https://notices.riverside.edu/notices/riverside-registration-39",
+    "gold_issuer": "Issued by: Academic Section, Riverside Institute",
+    "gold_date": "13 Apr",
+    "gold_deadline": "20 Apr.",
+    "gold_audience": "all first-year students",
+    "gold_action": "The semester registration is scheduled on 13 Apr for all first-year students."
+  }
+]

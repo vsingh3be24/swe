@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+backend/.venv/
+
+# Databases / runtime artifacts
+*.db
+finalsay.db
+backend/finalsay.db
+backend/finalsay-test-*/
+.env
+
+# Node / frontend
+node_modules/
+dist/
+dev-dist/
+apps/web/dist/
+apps/web/dev-dist/
+
+# OS
+.DS_Store
+
+# TS build info
+*.tsbuildinfo
