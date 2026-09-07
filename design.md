@@ -135,8 +135,10 @@ identifier reaches a stored field. The **unredacted original is not retained**: 
 enforced *structurally*, not just procedurally. The `notice` table stores only
 `redacted_text` and has **no** unredacted-original column (see §3), so `extraction.extract()`
 returns only `redacted_text` + fields and the ingestion service has nowhere to persist the
-original. Raw fetched files are kept **only for the duration of the project evaluation**,
-and the **benchmark released with the report contains redacted text only**.
+original. As a **stated operational policy** (not a runtime guarantee automated by the
+prototype, which has no deletion/expiry path), raw fetched files are intended to be kept
+**only for the duration of the project evaluation** and not retained beyond it. The
+**benchmark released with the report contains redacted text only**.
 
 ## 6. Provenance (module 3) — services/provenance.py + models_iface/anchor.py
 

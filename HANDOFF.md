@@ -332,6 +332,153 @@ counts incl. 1 merkle_root / 185 merkle_proofs / 1 anchor_block); `.venv/bin/pyt
 finalsay.eval.harness --split temporal` and `--split institution` (both exit 0);
 `cd apps/web && npm run build` (green). No git commit (orchestrator publishes).
 
+## Scope-note reconciliation pass (task-finalsay-reconcile-scope)
+
+This pass reconciled the already-built prototype against the **authoritative
+FinalSay-Scope-Note-v2** (which was not available during the original build and
+WINS over anything that conflicted). All 9 scope-note points are now fully
+satisfied. Backend tests **57 pass** (was 50); both eval splits **exit 0**; seed
+**idempotent**; frontend `npm run build` **green** (PWA manifest + sw.js).
+No git push and no PR (per the user: "do not push yet"); changes left committable
+on branch `work/finalsay-prototype`.
+
+### What changed
+
+**1. Benchmark scaled from 14 to 308 double-annotated pairs (primary gap; scope §1, §7).**
+- `backend/finalsay/seed/dataset.py`: replaced the hardcoded 14-item
+  `BENCHMARK_TRIPLES` with a pure/deterministic `generate_benchmark_triples()`
+  (no RNG). Gold labels cycle through all 7 relationship types (44 each = 308
+  total), so gold coverage spans the full taxonomy including `unresolved` and the
+  low-overlap date-conflict labels (contradictory/superseded). Each annotator
+  INDEPENDENTLY disagrees with gold on a fixed offset fraction of *genuinely
+  confusable* label pairs (annotator_a on `i%7==3`, annotator_b on `i%4==0`;
+  confusions: superseded↔contradictory, extended↔superseded, corrected↔consistent,
+  unresolved↔contradictory). `BENCHMARK_TRIPLES = generate_benchmark_triples()`;
+  `BENCHMARK_ANNOTATORS` unchanged (`reviewer_a`, `reviewer_b`).
+- `backend/finalsay/seed/seed.py`: rewrote `_seed_benchmark` so the benchmark is
+  no longer bounded by the ~65 gold submissions. Triple `i` is paired with
+  `submission[i % 65]` and `official[i % 120]`; because `lcm(65,120)=1560 >> 308`,
+  every `(submission_id, official_id)` combination is unique, which matches the
+  natural-key guard and keeps the step **idempotent** (re-running finds every pair
+  present and adds nothing). Reusing seeded notices across benchmark pairs is fine
+  for a dataset of relationship *judgements*.
+- `eval/harness.py:benchmark_kappa()` was already reading `dataset.BENCHMARK_TRIPLES`
+  columns [1]/[2] directly, so it picked up the 308-triple set automatically
+  (confirmed; no change needed). The reviewer API `compute_benchmark_kappa` now
+  reports kappa over 308 shared pairs from the DB.
+- Reported **Cohen's kappa = 0.625** (realistic substantial-but-imperfect, strictly
+  0 < κ < 1 — not the old effective 1.0), via both the DB path and the harness.
+- Seed counts after this pass: institutions 3, users 4, official 120, submissions
+  65, notice_fields 925, **benchmark_pairs 308, benchmark_annotations 616**,
+  merkle_roots 1, merkle_proofs 185, anchor_blocks 1. Stable on re-run.
+- **Held-out honesty preserved:** the eval gold submissions and the temporal-holdout
+  `_naturalistic_text` phrasings (`temporal_bucket==1`) were NOT touched
+  (`seed/fixtures/*.json` unchanged), so the benchmark scaling did not contaminate
+  the held-out evaluation. On `--split temporal` FinalSay relationship F1 stays
+  ~0.05 (not a round-trip 1.0) with a 0.000 false-confirmation rate.
+
+**2. Added the sixth required metric: time-to-identify-applicable-notice (scope §5).**
+- `backend/finalsay/eval/harness.py`: the harness previously reported five of the
+  six measures. Added the sixth as an **honest offline PROXY** (documented as such
+  in the module docstring and printed report — there is no live user, so no
+  wall-clock timing is claimed). `_chronological_rank(official_ext_id, officials)`
+  computes the applicable official's 1-based rank in its institution's
+  reverse-chronological feed (institution from the `external_id` prefix; feed sorted
+  by `_extract_dates(gold_date)` descending, ties by external_id desc for
+  determinism; DB-free). `time_to_identify(held_out, officials, system_name)`
+  returns `{mean_scan_cost, saving_ratio_vs_chronological}`. Wired into `evaluate()`
+  so **finalsay + all four baselines** carry a `time_to_identify` entry on **both**
+  splits. `print_report()` prints a per-system table plus a quantified saving line.
+- Metric choices (stated, not hand-waved): finalsay = 1.0 scan (direct candidate
+  retrieval surfaces the applicable official first); chronological = the official's
+  reverse-chronological rank; page_change/nli/prompted_llm **inherit** the
+  chronological cost because they present chronological-style feeds and do not
+  retrieve the applicable official.
+- Result: temporal split finalsay **1.000** vs chronological **19.286** (19.29x
+  faster); institution split finalsay **1.000** vs chronological **17.857**.
+
+**3. Stated retention-and-redaction policy + code verification (scope §1, §6).**
+- The redaction-before-storage BEHAVIOR already existed; what was missing was the
+  explicit STATED policy. Added it to all three docs, each covering the four points
+  (redaction of identifiers before storage/indexing; unredacted original NOT
+  retained; raw fetched files kept only for the duration of project evaluation;
+  released benchmark contains redacted text only):
+  - `requirements.md`: new EARS reqs **R2.5–R2.8** (SHALL/SHALL NOT phrasing).
+  - `design.md`: a **Retention policy** note in section 5 (module 2), referencing
+    the structural guarantee (the `notice` table stores only `redacted_text`, no
+    unredacted-original column).
+  - `README.md`: a plain-language **Data handling and retention** subsection.
+- Verified (not merely asserted): `models.py` `Notice` has `redacted_text` and no
+  unredacted-original column; `extraction.extract()` redacts then extracts fields
+  from the redacted text. Added two **behavioral** tests in `tests/test_ingestion.py`
+  that persist a PII-containing notice (submission and official paths), commit,
+  expunge, re-read from the DB, and assert masks present + all original PII strings
+  absent from `redacted_text`, every persisted `Notice` string attribute, and every
+  `NoticeField` value, plus that no unredacted-original column exists. These would
+  FAIL if an unredacted original were ever stored.
+
+### Points already satisfied (re-verified, unchanged)
+Cross-institution ≥3 (3 adapters + 3 seeded institutions); temporal + full-institution
+holdout (Summit); four baselines; unresolved-when-not-confident (confidence gating →
+`unresolved` + review_case); 7-label typed relationship taxonomy; provenance
+source_url + retrieved_at + sha256 per notice; daily Merkle root with only the root
+anchored + Polygon Amoy opt-in + local append-only fallback. All still hold after the
+changes above (57 tests pass, both eval splits exit 0).
+
+### Autonomous decisions this pass (with reasoning)
+- **Benchmark size 308** (44 × 7): the smallest perfectly label-balanced count above
+  the 300 floor.
+- **Both annotators independently disagree with gold** (a: 264/308, b: 231/308)
+  rather than making annotator_a a perfect copy of gold, so the benchmark reads like
+  genuine dual annotation instead of gold + noise; this also produces a realistic
+  κ = 0.625.
+- **Reuse seeded notices across benchmark pairs** (via the `i % N_sub`, `i % N_off`
+  pairing) because the benchmark is a dataset of relationship judgements, and the
+  scope note requires ≥300 *pairs/chains*, not ≥300 distinct notices. Uniqueness of
+  each `(submission_id, official_id)` combo keeps the seed idempotent.
+- **Time-to-identify implemented as a rank-position scan-cost proxy**, computed
+  offline from the officials' `gold_date` (no live user, no DB), with the proxy
+  nature stated explicitly in the docstring and report. Non-retrieval baselines
+  inherit the chronological cost by design.
+- **Retention window wording**: "raw fetched files are kept only for the duration of
+  the project evaluation" taken verbatim from scope §6; "unredacted original is not
+  retained" enforced structurally (no such column) and proven by a behavioral test.
+- **HANDOFF.md updated here** (this section) per the user's explicit requirement.
+- **No git push / no PR** per the user ("I'll give you the destination separately").
+  Coder subagents committed FEAT-002 and FEAT-003 files locally on
+  `work/finalsay-prototype`; FEAT-001's seed changes were left uncommitted on the
+  same branch. The tree is left committable for the orchestrator to finalize.
+
+### v1 semantic-review refinement pass (APPROVED verdict, 2 non-blocking wording issues)
+
+The v1 review of this reconciliation pass approved the work but flagged two
+honesty/wording issues (no logic, metric, benchmark, seed, or redaction behavior
+changed). Both addressed as wording-only refinements:
+
+- **Issue 1 — time-to-identify overstated FinalSay retrieval.** The proxy assigns
+  FinalSay a scan cost of 1.0, but the module docstring and printed report worded
+  it as a measured fact ("surfaces the applicable official directly ... so its scan
+  cost is 1"). Reworded `eval/harness.py` in three places — the module docstring,
+  the `time_to_identify()` docstring plus a new inline comment, and the printed
+  report note — to state plainly that 1.0 is an **IDEALIZATION assuming perfect
+  retrieval** (applicable official at rank 1) and that retrieval recall/rank is NOT
+  measured in this offline harness (it never calls `retrieve_candidates` for this
+  metric). The metric values, the `finalsay <= chronological` property, and the
+  computation are unchanged; only the honesty framing was made explicit. Did not
+  wire up live retrieval (deliberately, to avoid scope creep and keep it
+  deterministic/offline). Both splits still exit 0.
+- **Issue 2 — retention R2.7 was unenforced-policy wording.** `requirements.md`
+  R2.7, `design.md` section 5, and `README.md` "Data handling and retention" used
+  SHALL/active-voice phrasing that implied a runtime deletion guarantee, but no
+  deletion/expiry code path exists. Softened all three to read as a **stated
+  operational policy/intent** (explicitly noting the prototype has no automated
+  deletion/expiry path and enforcement is an operational responsibility). All four
+  scope-note points remain present in all three docs; coverage was not weakened.
+
+Verification after refinements: backend **57 pass**; both eval splits **exit 0**;
+seed idempotency, metric values, and redaction behavior untouched (no frontend
+change). Left committable on `work/finalsay-prototype`; no push, no PR.
+
 ## Autonomous decisions (with reasoning)
 - **Repo layout at workspace root** (`backend/`, `apps/web/`, `scripts/`, `Makefile`) rather
   than a nested `finalsay/` folder — simpler one-command demo. Backend Python package is

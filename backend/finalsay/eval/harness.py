@@ -15,7 +15,7 @@ baselines:
 - Cohen's kappa (from the seeded two-annotator benchmark),
 - time-to-identify-applicable-notice (scope note section 5, see below).
 
-Time-to-identify proxy (HONEST caveat — this is a PROXY, not a live-user timing):
+Time-to-identify proxy (HONEST caveat - this is a PROXY, not a live-user timing):
     There is no live user in this offline deterministic harness, so
     "time-to-identify" is modelled as a *scan cost*: the number of notices a
     student would have to read before reaching the applicable official notice
@@ -33,14 +33,21 @@ Time-to-identify proxy (HONEST caveat — this is a PROXY, not a live-user timin
       official), so they INHERIT the same chronological scan cost. This choice
       is documented rather than hand-waved: none of them ranks the applicable
       official higher than recency does.
-    - FinalSay surfaces the applicable official DIRECTLY via candidate
-      retrieval (services/comparison.retrieve_candidates matches on issuer +
-      subject), so the applicable notice is presented first: its scan cost is 1.
+    - FinalSay is assigned a scan cost of 1 under an explicit IDEALIZATION:
+      that its candidate retrieval surfaces the applicable official at rank 1.
+      This is an assumption of PERFECT retrieval, NOT a measured value. This
+      offline harness does not measure retrieval recall or rank -- it never
+      calls ``services.comparison.retrieve_candidates`` for this metric and
+      takes the applicable official directly from each pair's gold pairing. Real
+      retrieval can rank the applicable official below 1 or miss it, so the
+      reported FinalSay cost (and the saving ratio) are best-case figures under
+      the perfect-retrieval assumption, not an empirical retrieval result.
 
     We aggregate as the MEAN scan cost over the held-out pairs (lower is better)
     and also report ``saving_ratio_vs_chronological`` = chronological_mean /
-    system_mean, quantifying the "saves the student time" claim. No wall-clock
-    timing is claimed; it is a rank-position proxy only.
+    system_mean, quantifying the "saves the student time" claim under the same
+    idealization. No wall-clock timing is claimed; it is a rank-position proxy
+    only, and FinalSay's value assumes ideal retrieval (recall/rank unmeasured).
 
 Splits: ``temporal`` holds out the latest submissions; ``institution`` holds out
 one full institution (Summit). Exits 0 on success regardless of metric values.
@@ -189,8 +196,10 @@ def time_to_identify(held_out: list[dict], officials: dict, system_name: str) ->
 
     Returns ``{"mean_scan_cost": float, "saving_ratio_vs_chronological": float}``.
 
-    - ``finalsay`` retrieves the applicable official directly, so every pair has
-      a scan cost of 1.0 (the applicable notice is surfaced first).
+    - ``finalsay`` is assigned a scan cost of 1.0 per pair as an IDEALIZATION
+      assuming perfect retrieval (the applicable official surfaced at rank 1).
+      Retrieval recall/rank is NOT measured in this offline harness, so this is
+      a best-case assumption, not an empirical value.
     - ``chronological`` and the other chronological-style baselines
       (``page_change``, ``nli``, ``prompted_llm``) scan the reverse-chronological
       feed, so the scan cost is the applicable official's 1-based rank in it.
@@ -204,6 +213,9 @@ def time_to_identify(held_out: list[dict], officials: dict, system_name: str) ->
         return {"mean_scan_cost": 0.0, "saving_ratio_vs_chronological": 1.0}
 
     if system_name == "finalsay":
+        # IDEALIZATION: assumes perfect retrieval (applicable official at rank
+        # 1). Retrieval recall/rank is not measured in this offline harness, so
+        # 1.0 is a best-case assumption, not a measured value.
         costs = [1.0 for _ in held_out]
     else:
         costs = [
@@ -378,10 +390,13 @@ def print_report(results: dict) -> None:
         )
 
     print(
-        "\nTime-to-identify-applicable-notice (PROXY — no live-user timing):\n"
+        "\nTime-to-identify-applicable-notice (PROXY - no live-user timing):\n"
         "  Mean scan cost = number of notices a student reads before reaching\n"
         "  the applicable official. Chronological-style feeds pay the official's\n"
-        "  reverse-chronological rank; FinalSay retrieves it directly (cost 1).\n"
+        "  reverse-chronological rank. FinalSay's cost of 1 is an IDEALIZATION\n"
+        "  assuming perfect retrieval (applicable official at rank 1); retrieval\n"
+        "  recall/rank is NOT measured here, so FinalSay's figure and the saving\n"
+        "  ratio are best-case under that assumption, not an empirical result.\n"
         "  saving_ratio = chronological_mean / system_mean (higher is better)."
     )
     t_header = f"  {'system':<14}{'mean_scan_cost':>16}{'saving_vs_chrono':>18}"

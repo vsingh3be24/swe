@@ -165,8 +165,10 @@ FinalSay redacts personal data before it stores anything:
   that holds the pre-redaction text; the `notice` table stores only
   `redacted_text`, so the guarantee is enforced structurally, not just by
   convention.
-- **Raw fetched files are kept only for the duration of the project
-  evaluation** and are not retained beyond it.
+- **Raw fetched files: stated operational policy.** As an operational policy (not a
+  runtime guarantee automated by the prototype, which has no deletion/expiry path), raw
+  fetched files are intended to be kept only for the duration of the project evaluation
+  and not retained beyond it.
 - **The benchmark released with the report contains redacted text only.**
 
 ## Testing and evaluation

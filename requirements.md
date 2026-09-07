@@ -87,8 +87,11 @@ as exactly one of: `consistent`, `contradictory`, `superseded`, `corrected`, `ex
   side artifact SHALL hold the pre-redaction text once ingestion completes; the
   redaction-before-storage guarantee is enforced structurally (the `notice` table has a
   `redacted_text` column and **no** unredacted-original column).
-- R2.7. Raw fetched files SHALL be kept **only for the duration of the project
-  evaluation**, and SHALL NOT be retained beyond it.
+- R2.7. As a **stated operational policy** (not a runtime guarantee automated by the
+  prototype), raw fetched files are intended to be kept **only for the duration of the
+  project evaluation** and not retained beyond it. The prototype has no automated
+  deletion/expiry path; enforcing this is an operational responsibility, and it is
+  recorded here so the policy is explicit.
 - R2.8. The **benchmark released with the report SHALL contain redacted text only.**
 
 ## 3. Provenance
