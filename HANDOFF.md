@@ -665,3 +665,87 @@ the artifact must carry P2's numbers.
   on a clean clone.
 - **No git push / no PR** per the standing instruction. Committed the P2/P3 work
   locally on `work/finalsay-prototype`; left the tree committable.
+
+## P4 — End-to-end demo smoke test (FEAT-003)
+
+**Goal:** prove "the demo works" rather than assume it — a scripted end-to-end test
+that drives the *real* app through the whole user journey, wired into the build so it
+runs as a named proof target and inside `make test`.
+
+### What was added
+- **`backend/finalsay/tests/test_smoke_e2e.py`** — an in-process end-to-end smoke test
+  built on the existing `conftest.py` `client` (FastAPI `TestClient`) + `make_user`
+  fixtures. Two tests:
+  - `test_end_to_end_demo_journey` — walks the full journey (below) with a real
+    assertion at every stage.
+  - `test_persisted_submission_has_no_unredacted_pii` — a belt-and-suspenders DB-level
+    re-read of the submitted `Notice` + `NoticeField` rows asserting no original PII
+    string survived storage.
+- **`make smoke` target in the `Makefile`** — mirrors the `test` target's venv usage
+  (`cd backend && .venv/bin/python -m pytest finalsay/tests/test_smoke_e2e.py -q`).
+  Added `smoke` to `.PHONY` and a line to the `help` echo block. Because the file lives
+  under `finalsay/tests/`, it **also runs inside `make test`** — so it is both a named
+  proof target and part of the regular suite.
+
+### The journey it exercises (through the real API endpoints)
+1. **Auth** — provisions admin, issuer and student via `make_user` (privileged roles the
+   way the seed does), then logs each in through the real OAuth2 password flow to obtain
+   bearer tokens; `GET /api/auth/me` round-trip confirms the student identity.
+2. **Seed an official** — admin creates an institution via `POST /api/ingest/sources`;
+   the issuer publishes an official notice (exam on 15 Sept, all first-year students)
+   into it via `POST /api/issuer/publish` (runs the extraction + hash pipeline).
+3. **Submit + extract + redact + retrieve + classify** — student `POST /api/ingest/submit`
+   with a PII-laden notice that conflicts on date (postponed to 22 Sept), tied to the
+   institution. Asserts: a candidate was retrieved (`candidate_id` set), model is `mock`,
+   the returned label is a real relationship (`superseded`/`contradictory`/`extended`,
+   never `consistent` or `unresolved`) with confidence ≥ 0.6 above the gate, and a
+   rationale is present.
+4. **Evidence trail + redaction** — `GET /api/notices/{submission_id}` returns
+   `redacted_text` and extracted `fields`; asserts the redaction masks are present and
+   **none** of the original PII strings (email, phone fragment, roll number, names)
+   appear in the redacted text or any stored field. `GET /api/notices/{id}/candidates`
+   returns the official as the top-ranked candidate with a positive overlap score.
+5. **Integrity vs the anchored hash** — admin `POST /api/provenance/build` (no body →
+   today's UTC day) builds the daily Merkle root over the official + submission (leaf
+   count ≥ 2, local anchor). `GET /api/provenance/verify/{id}` → `ok:true, tamper:false`;
+   `GET .../verify/{id}?tamper=true` → flips to `ok:false, tamper:true`.
+6. **Ambiguous → unresolved** — a deliberately low-signal submission returns
+   `label:"unresolved"`, `gated:true`, confidence < 0.6, `status:"unresolved"`, and a
+   non-null `review_case_id` (a review case was opened).
+
+### Why in-process (not a live server)
+Background daemons are reaped between separate tool/command invocations in this sandbox
+(`--die-with-parent`), so an out-of-process `uvicorn` server started in one step is gone
+by the next and cannot be driven across steps. The in-process `TestClient` exercises the
+identical ASGI app, routes, dependencies and services end-to-end in a single process, so
+it is the durable, deterministic proof. No live-server variant was added because it could
+not survive across steps; the in-process test is the required durable deliverable and it
+covers the entire journey. It runs fully **offline/deterministic**: default MOCK model,
+LOCAL anchor, and a per-test temp SQLite DB provisioned by `conftest.py` under the backend
+tree (no network, no HF stack, no paid keys). No stray db/temp artifacts are left (the
+conftest `atexit` hook removes its temp dir; `git status` is clean of stray files).
+
+### Verification (all green)
+- `cd backend && .venv/bin/pytest finalsay/tests/test_smoke_e2e.py -q` → **2 passed**.
+- `cd /projects/sandbox && make smoke` → passes.
+- `cd backend && .venv/bin/pytest finalsay/tests -q` → **59 passed** (57 baseline + 2 new
+  smoke tests; no regressions).
+- Both eval splits still exit 0 (`--split temporal` and `--split institution`).
+- `cd apps/web && npm run build` → green (PWA manifest + sw.js emitted).
+
+### Autonomous decisions (with reasoning)
+- **In-process TestClient, no live-server variant.** Per the daemon-reaping constraint a
+  live server cannot be driven across steps; the in-process client runs the identical app
+  end-to-end and is deterministic, so it is the sole (and required) smoke deliverable.
+- **`make smoke` added *and* the test lives under `finalsay/tests/`** so it is both a
+  named "the demo works" proof target and part of `make test` — satisfying either wiring
+  option in the plan.
+- **Real, brittle-on-purpose assertions.** The test asserts on actual pipeline outputs
+  (retrieved candidate id, non-consistent conflicting-date label, confidence gate,
+  redaction masks + absence of raw PII, Merkle verify ok→tamper flip, unresolved gating);
+  it does not mock away or hard-code the logic, so it fails if any stage regresses.
+- **`POST /api/provenance/build` sent with no body** (endpoint defaults to today's UTC
+  day). Sending `{}` fails validation because `MerkleBuildRequest.day` is required when a
+  body is present; omitting the body is the correct "build today" call.
+- **No git push / no PR** per the standing instruction. Committed the P4 work locally on
+  `work/finalsay-prototype`; left the tree committable.

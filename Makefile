@@ -12,7 +12,7 @@ VENV_PY    := $(VENV)/bin/python
 PYENV_PY   := $(HOME)/.pyenv/versions/3.11.15/bin/python
 PYTHON_BIN := $(shell [ -x "$(PYENV_PY)" ] && echo "$(PYENV_PY)" || command -v python3.11 || command -v python3)
 
-.PHONY: help demo backend frontend seed test eval venv install clean
+.PHONY: help demo backend frontend seed test smoke eval venv install clean
 
 help:
 	@echo "FinalSay make targets:"
@@ -21,6 +21,7 @@ help:
 	@echo "  make frontend  Run the Vite dev server only (:5173)"
 	@echo "  make seed      Seed the database idempotently"
 	@echo "  make test      Run the backend pytest suite"
+	@echo "  make smoke     Run the end-to-end demo smoke test (proves the journey)"
 	@echo "  make eval      Run the evaluation harness for both splits"
 	@echo "  make install   Create the venv and install backend requirements"
 	@echo "  make clean     Remove the venv, SQLite db, caches, and node_modules"
@@ -53,6 +54,13 @@ seed: install
 # --- Verification -------------------------------------------------------------
 test: install
 	cd $(BACKEND) && $(VENV_PY) -m pytest finalsay/tests -q
+
+# End-to-end smoke test: drive the real app (in-process TestClient) through the
+# whole demo journey — submit -> extract+redact -> retrieve -> classify with
+# confidence -> evidence trail -> integrity verify (+ tamper) -> ambiguous ->
+# unresolved. Also runs inside `make test` (it lives under finalsay/tests).
+smoke: install
+	cd $(BACKEND) && $(VENV_PY) -m pytest finalsay/tests/test_smoke_e2e.py -q
 
 eval: install
 	cd $(BACKEND) && $(VENV_PY) -m finalsay.eval.harness --split temporal
