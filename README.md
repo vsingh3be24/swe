@@ -1,4 +1,4 @@
-# Finalsay
+# FinalSay
 
 FinalSay is a cross-institution notice verification platform prototype. Students
 submit a notice (pasted text or a PDF/image); FinalSay extracts and redacts it,
